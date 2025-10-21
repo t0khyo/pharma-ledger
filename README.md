@@ -9,7 +9,7 @@
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/pharma-ledger.git
+   git clone https://github.com/t0khyo/pharma-ledger.git
    ```
 
 2. Navigate into the project folder:
