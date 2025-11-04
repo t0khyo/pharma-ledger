@@ -2,6 +2,7 @@
   "appId": "dev.abdelrahman-eltokhy.pharma-ledger",
   "files": ["dist-electron", "dist-react"],
   "icon": "./assets/pharma-ledger-icon.ico",
+  "extraResources": ["dist-electron/preload.cjs"],
   "mac": {
     "target": ["dmg"]
   },

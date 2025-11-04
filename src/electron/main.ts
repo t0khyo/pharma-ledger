@@ -3,7 +3,11 @@ import path from "path";
 import { isDev } from "./util.js";
 
 app.on("ready", () => {
-  const mainWindow = new BrowserWindow({});
+  const mainWindow = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+    }
+  });
 
   if (isDev()) {
     mainWindow.loadURL("http://localhost:5123");
