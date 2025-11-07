@@ -58,12 +58,12 @@ export function AppSidebar() {
             className="h-10 w-10 object-contain m-auto"
           />
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-sidebar-foreground">
+            <h1 className="text-lg font-bold text-sidebar-foreground">
               دفتر المحاسبة
-            </span>
-            <span className="text-xs text-sidebar-foreground/60">
+            </h1>
+            <h2 className="text-xs text-sidebar-foreground/60">
               د. صبحي شعبان
-            </span>
+            </h2>
           </div>
         </div>
       </SidebarHeader>
@@ -76,8 +76,11 @@ export function AppSidebar() {
               {NAV_ITEMS.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5" />
+                    <a
+                      href={item.url}
+                      className="text-lg flex items-center gap-3"
+                    >
+                      <item.icon className="h-10 w-10" />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
