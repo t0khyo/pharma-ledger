@@ -1,13 +1,9 @@
-"use client";
-
 import * as React from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   IconTrendingUp,
   IconBuildings,
-  IconInnerShadowTop,
   IconCreditCard,
-  IconSearch,
-  IconSettings,
   IconUsers,
 } from "@tabler/icons-react";
 
@@ -26,6 +22,8 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 
+import logoImage from "@/assets/logo.png";
+
 const data = {
   user: {
     name: "Sobhy Shaaban",
@@ -35,41 +33,30 @@ const data = {
   navMain: [
     {
       title: "الديون",
-      url: "#",
+      url: "/debts",
       icon: IconCreditCard,
     },
     {
       title: "العملاء",
-      url: "#",
+      url: "/customers",
       icon: IconUsers,
     },
     {
       title: "التقارير المالية",
-      url: "#",
+      url: "/reports",
       icon: IconTrendingUp,
     },
     {
       title: "الشركات",
-      url: "#",
+      url: "/companies",
       icon: IconBuildings,
-    },
-  ],
-
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const location = useLocation();
+
   return (
     <Sidebar side="right" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -79,26 +66,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <img src="/assets/logo.png" alt="Logo" className="w-5 h-5" />
+              <Link to="/">
+                <img src={logoImage} alt="Logo" className="w-5 h-5" />
                 <span className="text-base font-semibold">دفتر المحاسبة</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarSeparator />
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>الرئيسية</SidebarGroupLabel>
           <SidebarGroupContent className="flex flex-col gap-2">
-            <SidebarMenu></SidebarMenu>
             <SidebarMenu>
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link to={item.url}>
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

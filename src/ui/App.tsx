@@ -1,26 +1,27 @@
-import { AppSidebar } from "@/components/AppSidebar";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "./components/ui/sidebar";
+import { HashRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "@/components/Layout";
+import Home from "@/pages/Home";
+import Debts from "@/pages/Debts";
+import FinancialReports from "@/pages/FinancialReports";
+import Customers from "@/pages/Customers";
+import Companies from "@/pages/Companies";
 
-export default function App({ children }: { children?: React.ReactNode }) {
+function App() {
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 50)",
-          "--header-height": "calc(var(--spacing) * 18)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        <SidebarInset></SidebarInset>
-        {children}
-      </main>
-    </SidebarProvider>
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="debts" element={<Debts />} />
+          <Route path="customers" element={<Customers />} />
+          <Route path="reports" element={<FinancialReports />} />
+          <Route path="companies" element={<Companies />} />
+          {/* <Route path="settings" element={<Settings />} /> */}
+          {/* <Route path="search" element={<Search />} /> */}
+        </Route>
+      </Routes>
+    </HashRouter>
   );
 }
+
+export default App;
