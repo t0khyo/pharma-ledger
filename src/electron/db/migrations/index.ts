@@ -1,6 +1,5 @@
-// src/electron/db/index.ts
 import Database from "better-sqlite3";
-import { createCompanyTable } from "./migrations/001_create_company_table.js";
+import { createCompanyTable } from "./001_create_company_table.js";
 
 export let db: Database.Database;
 
