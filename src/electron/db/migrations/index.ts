@@ -1,12 +1,9 @@
-import Database from "better-sqlite3";
+import { getDatabaseConnection } from "../db.js";
 import { createCompanyTable } from "./001_create_company_table.js";
 
-export let db: Database.Database;
-
 export function initDb() {
-  // Create or open database
-  db = new Database("./app.db");
-  console.log("Database connected!");
+  // Get the shared database connection
+  const db = getDatabaseConnection();
 
   // Run migrations
   createCompanyTable(db);

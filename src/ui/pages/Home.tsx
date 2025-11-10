@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { companyService } from "@/services/company.service";
 
 export default function Home() {
   const stats = [
@@ -218,7 +219,11 @@ export default function Home() {
               <IconTrendingUp className="h-5 w-5" />
               <span className="text-sm">تقرير مالي</span>
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button
+              onClick={() => companyService.getAll()}
+              variant="outline"
+              className="h-20 flex-col gap-2"
+            >
               <IconBuildings className="h-5 w-5" />
               <span className="text-sm">شركة جديدة</span>
             </Button>

@@ -4,11 +4,13 @@ import { isDev } from "./util.js";
 import { getPreloadPath } from "./pathResolver.js";
 import { initDb } from "./db/migrations/index.js";
 import { closeDatabaseConnection } from "./db/db.js";
+import { registerAllHandlers } from "./ipc/index.js";
 
 let mainWindow: BrowserWindow | null = null;
 
 app.on("ready", () => {
   initDb(); // connect DB & run migrations
+  registerAllHandlers();
   createMainWindow();
 });
 

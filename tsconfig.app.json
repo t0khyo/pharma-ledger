@@ -29,6 +29,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
+  "include": ["src/ui", "src/shared", "src/ui/types"],
   "exclude": ["src/electron"]
 }
