@@ -43,4 +43,28 @@ export const registerCompanyHandlers = () => {
       };
     }
   });
+
+  ipcMain.handle("company:update", async (event, id: string, data: Partial<CreateCompanyDTO>) => {
+    try {
+      const updatedCompany = await companyService.update(id, data);
+      return { success: true, data: updatedCompany };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
+
+  ipcMain.handle("company:delete", async (event, id: string) => {
+    try {
+      await companyService.delete(id);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
 };
