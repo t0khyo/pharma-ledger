@@ -1,4 +1,3 @@
-// src/ui/components/CompaniesSection.tsx - Simplified!
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";

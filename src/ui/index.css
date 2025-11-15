@@ -117,14 +117,25 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-    @apply text-right;
+  html,
+  body {
+    direction: rtl;
   }
+
+  .scroll-left {
+    direction: rtl; /* flips scrollbar to the left */
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
   }
+
+  * {
+    @apply border-border outline-ring/50;
+    @apply text-right;
+  }
+
   h1,
   h2,
   h3,

@@ -3,6 +3,7 @@ export interface Company {
   company_name: string;
   contact_person?: string;
   phone?: string;
+  created_at: string;
 }
 
 export interface CreateCompanyDTO {
