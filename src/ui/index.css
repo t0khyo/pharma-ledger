@@ -78,6 +78,8 @@
   --sidebar-ring: oklch(0.708 0 0);
   --font-heading: "Cairo", sans-serif;
   --font-body: "Tajawal", sans-serif;
+
+  @apply text-right;
 }
 
 .dark {
@@ -117,12 +119,18 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    @apply text-right;
   }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading);
   }
 }
