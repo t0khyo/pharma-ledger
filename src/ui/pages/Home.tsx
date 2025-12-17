@@ -20,7 +20,7 @@ export default function Home() {
   const stats = [
     {
       title: "إجمالي الديون",
-      value: "245,000 د.ك",
+      value: "245,000 ج.م",
       change: "+12.5%",
       trend: "up",
       icon: IconCreditCard,
@@ -36,7 +36,7 @@ export default function Home() {
     },
     {
       title: "الإيرادات الشهرية",
-      value: "89,500 د.ك",
+      value: "89,500 ج.م",
       change: "-3.1%",
       trend: "down",
       icon: IconTrendingUp,
@@ -56,25 +56,25 @@ export default function Home() {
     {
       customer: "أحمد محمد",
       action: "دفع جزئي",
-      amount: "5,000 د.ك",
+      amount: "5,000 ج.م",
       time: "منذ ساعتين",
     },
     {
       customer: "فاطمة علي",
       action: "دين جديد",
-      amount: "12,000 د.ك",
+      amount: "12,000 ج.م",
       time: "منذ 4 ساعات",
     },
     {
       customer: "محمد خالد",
       action: "سداد كامل",
-      amount: "8,500 د.ك",
+      amount: "8,500 ج.م",
       time: "منذ يوم واحد",
     },
     {
       customer: "سارة حسن",
       action: "دفع جزئي",
-      amount: "3,200 د.ك",
+      amount: "3,200 ج.م",
       time: "منذ يومين",
     },
   ];
@@ -186,7 +186,7 @@ export default function Home() {
                 <span className="text-sm text-muted-foreground">
                   متوسط قيمة الدين
                 </span>
-                <span className="text-sm font-bold">6,850 د.ك</span>
+                <span className="text-sm font-bold">6,850 ج.م</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
