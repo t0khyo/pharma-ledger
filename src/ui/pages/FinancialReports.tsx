@@ -91,44 +91,24 @@ export default function FinancialReports() {
     fetchFinancialData();
   }, [selectedDate]);
 
-  // Handle cell update
-  const handleCellUpdate = async (
+  // Handle row update
+  const handleRowUpdate = async (
     date: string,
-    field: string,
-    value: number
+    updatedData: { income: number; expenses: Record<string, number> }
   ) => {
     try {
-      // Get existing data for this date
-      const existingRow = financialData.find((row) => row.date === date);
-
-      // Build the expenses array
+      // Build the expenses array for API
       const expenses: Array<{ company_id: string; amount: number }> = [];
+      Object.entries(updatedData.expenses).forEach(([companyId, amount]) => {
+        if (amount > 0) {
+          expenses.push({ company_id: companyId, amount });
+        }
+      });
 
-      if (field === "income") {
-        // Update income, keep existing expenses
-        companies.forEach((company) => {
-          const amount = existingRow?.expenses[company.company_id] || 0;
-          if (amount > 0) {
-            expenses.push({ company_id: company.company_id, amount });
-          }
-        });
-      } else {
-        // Update expense for a specific company
-        companies.forEach((company) => {
-          let amount = existingRow?.expenses[company.company_id] || 0;
-          if (company.company_id === field) {
-            amount = value;
-          }
-          if (amount > 0) {
-            expenses.push({ company_id: company.company_id, amount });
-          }
-        });
-      }
-
-      // Upsert entry
+      // Upsert entry with all data
       const updatedRow = await financialService.upsertEntry({
         date,
-        income: field === "income" ? value : existingRow?.income || 0,
+        income: updatedData.income,
         expenses,
       });
 
@@ -154,7 +134,7 @@ export default function FinancialReports() {
       );
       setSummary(summaryData);
 
-      toast.success("تم حفظ البيانات");
+      toast.success("تم حفظ البيانات بنجاح");
     } catch (error) {
       toast.error("فشل في حفظ البيانات");
       console.error(error);
@@ -274,7 +254,7 @@ export default function FinancialReports() {
         dateRange={dateRange}
         companies={companies}
         data={financialData}
-        onCellUpdate={handleCellUpdate}
+        onRowUpdate={handleRowUpdate}
         loading={loading}
       />
     </div>
