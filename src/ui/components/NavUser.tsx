@@ -4,6 +4,9 @@ import {
   IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -34,6 +37,18 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+      toast.success("تم تسجيل الخروج بنجاح");
+    } catch (error) {
+      toast.error("فشل تسجيل الخروج");
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -89,7 +104,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               تسجيل الخروج
             </DropdownMenuItem>

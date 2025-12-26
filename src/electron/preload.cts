@@ -6,6 +6,7 @@ import {
   MonthSummary,
   UpsertDailyEntryDTO,
 } from "../shared/types/financial.types.js";
+import { User, LoginCredentials } from "../shared/types/user.types.js";
 
 const companyApi = {
   create: (data: CreateCompanyDTO): Promise<ApiResponse<Company>> =>
@@ -49,8 +50,20 @@ const financialApi = {
     ipcRenderer.invoke("financial:deleteEntry", date),
 };
 
+const authApi = {
+  login: (credentials: LoginCredentials): Promise<ApiResponse<User>> =>
+    ipcRenderer.invoke("auth:login", credentials),
+
+  logout: (): Promise<ApiResponse<void>> =>
+    ipcRenderer.invoke("auth:logout"),
+
+  getCurrentUser: (): Promise<ApiResponse<User | null>> =>
+    ipcRenderer.invoke("auth:getCurrentUser"),
+};
+
 // Expose the API to the renderer process
 contextBridge.exposeInMainWorld("api", {
   company: companyApi,
   financial: financialApi,
+  auth: authApi,
 });

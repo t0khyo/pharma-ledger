@@ -4,6 +4,7 @@ import {
   MonthSummary,
   UpsertDailyEntryDTO,
 } from "./financial.types";
+import { User, LoginCredentials } from "./user.types";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -37,9 +38,16 @@ export interface FinancialApi {
   deleteEntry: (date: string) => Promise<ApiResponse<void>>;
 }
 
+export interface AuthApi {
+  login: (credentials: LoginCredentials) => Promise<ApiResponse<User>>;
+  logout: () => Promise<ApiResponse<void>>;
+  getCurrentUser: () => Promise<ApiResponse<User | null>>;
+}
+
 export interface ElectronApi {
   company: CompanyApi;
   financial: FinancialApi;
+  auth: AuthApi;
 }
 
 declare global {
