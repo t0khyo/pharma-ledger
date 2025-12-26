@@ -152,10 +152,10 @@ export function FinancialTable({
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden relative">
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
         <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
+          <TableHeader className="sticky top-0 bg-background z-30 shadow-sm">
             <TableRow>
               <TableHead className="text-right font-bold w-28">التاريخ</TableHead>
               <TableHead className="text-right font-bold w-32 bg-blue-100 dark:bg-blue-900/50">الإيرادات</TableHead>
@@ -173,7 +173,7 @@ export function FinancialTable({
               <TableHead className="text-right font-bold w-32 bg-green-100 dark:bg-green-900/50">
                 صافي الربح
               </TableHead>
-              <TableHead className="text-center font-bold w-24">إجراءات</TableHead>
+              <TableHead className="text-center font-bold w-24 sticky left-0 bg-background z-20">إجراءات</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -189,11 +189,18 @@ export function FinancialTable({
               const isEditing = editingRow === date;
 
               return (
-                <TableRow key={date} className={isEditing ? "bg-muted/50" : ""}>
-                   <TableCell className="font-medium text-right">
+                <TableRow 
+                  key={date} 
+                  className={`group transition-all duration-200 ${
+                    isEditing 
+                      ? "bg-background shadow-2xl ring-2 ring-primary z-20 relative" 
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  <TableCell className="font-medium text-right">
                     {formatDate(date)}
                   </TableCell>
-                  <TableCell className="text-right bg-blue-50 dark:bg-blue-900/20">
+                  <TableCell className={`text-right ${isEditing ? "" : "bg-blue-50 dark:bg-blue-900/20"}`}>
                     {renderEditableCell(
                       row.income,
                       date,
@@ -203,7 +210,9 @@ export function FinancialTable({
                   {companies.map((company, index) => (
                     <TableCell 
                       key={company.company_id} 
-                      className={`text-right ${index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}`}
+                      className={`text-right ${
+                        !isEditing && index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''
+                      }`}
                     >
                       {renderEditableCell(
                         row.expenses[company.company_id] || 0,
@@ -212,19 +221,23 @@ export function FinancialTable({
                       )}
                     </TableCell>
                   ))}
-                  <TableCell className="bg-yellow-50 dark:bg-yellow-900/20 font-medium text-right">
+                  <TableCell className={`font-medium text-right ${isEditing ? "" : "bg-yellow-50 dark:bg-yellow-900/20"}`}>
                     {formatCurrency(row.totalExpenses)}
                   </TableCell>
                   <TableCell
-                    className={`font-bold text-right bg-green-50 dark:bg-green-900/20 ${
+                    className={`font-bold text-right ${
+                      !isEditing ? "bg-green-50 dark:bg-green-900/20" : ""
+                    } ${
                       row.netProfit >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
                     {formatCurrency(row.netProfit)}
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className={`text-center sticky left-0 z-10 transition-colors ${
+                      isEditing ? "bg-background" : "bg-background/95 backdrop-blur-sm"
+                  }`}>
                     {isEditing ? (
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-1 animate-in fade-in zoom-in duration-200">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -246,7 +259,7 @@ export function FinancialTable({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                         onClick={() => handleEditClick(row)}
                         disabled={editingRow !== null && editingRow !== date}
                       >
