@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Eye, EyeOff } from "lucide-react";
 import { MonthSelector } from "@/components/financial/MonthSelector";
 import { SummaryCards } from "@/components/financial/SummaryCards";
 import { FinancialTable } from "@/components/financial/FinancialTable";
@@ -20,6 +20,7 @@ export default function FinancialReports() {
   const [financialData, setFinancialData] = useState<DailyFinancialRow[]>([]);
   const [summary, setSummary] = useState<MonthSummary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showSensitive, setShowSensitive] = useState(false);
 
   // Calculate custom month range (9th to 8th of next month)
   const getDateRange = (date: Date) => {
@@ -229,11 +230,25 @@ export default function FinancialReports() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">التقارير المالية</h1>
-        <p className="text-muted-foreground">
-          سجل يومي للإيرادات والمصروفات مع الشركات
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">التقارير المالية</h1>
+          <p className="text-muted-foreground">
+            سجل يومي للإيرادات والمصروفات مع الشركات
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setShowSensitive(!showSensitive)}
+          title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
+        >
+          {showSensitive ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </Button>
       </div>
 
       <MonthSelector
@@ -241,7 +256,11 @@ export default function FinancialReports() {
         onMonthChange={setSelectedDate}
       />
 
-      <SummaryCards summary={summary} loading={loading} />
+      <SummaryCards
+        summary={summary}
+        loading={loading}
+        showValues={showSensitive}
+      />
 
       <div className="flex justify-end">
         <Button onClick={handleExport} variant="outline" className="gap-2">

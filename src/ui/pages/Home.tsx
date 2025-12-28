@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   IconCreditCard,
   IconUsers,
@@ -5,6 +6,8 @@ import {
   IconBuildings,
   IconArrowUpRight,
   IconArrowDownRight,
+  IconEye,
+  IconEyeOff,
 } from "@tabler/icons-react";
 import {
   Card,
@@ -19,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
   const { user, hasRole } = useAuth();
+  const [showSensitive, setShowSensitive] = useState(false);
   const stats = [
     {
       title: "إجمالي الديون",
@@ -27,6 +31,7 @@ export default function Home() {
       trend: "up",
       icon: IconCreditCard,
       color: "text-red-500",
+      adminOnly: true,
     },
     {
       title: "عدد العملاء",
@@ -35,6 +40,7 @@ export default function Home() {
       trend: "up",
       icon: IconUsers,
       color: "text-blue-500",
+      adminOnly: false,
     },
     {
       title: "الإيرادات الشهرية",
@@ -43,6 +49,7 @@ export default function Home() {
       trend: "down",
       icon: IconTrendingUp,
       color: "text-green-500",
+      adminOnly: true,
     },
     {
       title: "عدد الشركات",
@@ -51,6 +58,7 @@ export default function Home() {
       trend: "up",
       icon: IconBuildings,
       color: "text-purple-500",
+      adminOnly: false,
     },
   ];
 
@@ -99,10 +107,27 @@ export default function Home() {
             نظرة عامة على نشاط دفتر المحاسبة
           </p>
         </div>
-        <Button>
-          <IconTrendingUp className="ml-2 h-4 w-4" />
-          تقرير جديد
-        </Button>
+
+        <div className="flex gap-2">
+          {hasRole("admin") && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowSensitive(!showSensitive)}
+              title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
+            >
+              {showSensitive ? (
+                <IconEyeOff className="h-4 w-4" />
+              ) : (
+                <IconEye className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          <Button>
+            <IconTrendingUp className="ml-2 h-4 w-4" />
+            تقرير جديد
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -116,7 +141,15 @@ export default function Home() {
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-bold">
+                {stat.adminOnly && !showSensitive ? (
+                  <span className="blur-md select-none bg-muted/50 rounded px-2">
+                    ******
+                  </span>
+                ) : (
+                  stat.value
+                )}
+              </div>
               <p className="text-xs text-muted-foreground flex items-center mt-1">
                 {stat.trend === "up" ? (
                   <IconArrowUpRight className="h-3 w-3 text-green-500 ml-1" />

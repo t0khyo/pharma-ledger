@@ -9,9 +9,14 @@ import type { MonthSummary } from "src/shared/types/financial.types";
 interface SummaryCardsProps {
   summary: MonthSummary | null;
   loading?: boolean;
+  showValues?: boolean;
 }
 
-export function SummaryCards({ summary, loading }: SummaryCardsProps) {
+export function SummaryCards({
+  summary,
+  loading,
+  showValues = false,
+}: SummaryCardsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
@@ -71,7 +76,13 @@ export function SummaryCards({ summary, loading }: SummaryCardsProps) {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${card.color}`}>
-              {formatCurrency(card.value)} ج.م
+              {!showValues ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2">
+                  ******
+                </span>
+              ) : (
+                <>{formatCurrency(card.value)} ج.م</>
+              )}
             </div>
           </CardContent>
         </Card>
