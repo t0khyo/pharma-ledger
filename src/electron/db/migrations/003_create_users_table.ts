@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+
 import type { Database } from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
@@ -25,31 +24,32 @@ export function createUsersTable(db: Database) {
   // Seed default users
   const checkUser = db.prepare("SELECT COUNT(*) as count FROM users WHERE username = ?");
   
-  let defaultUsers: Array<{
-    username: string;
-    password: string;
-    full_name: string;
-    role: string;
-  }> = [];
-
-  try {
-    // Try to find the file in the project root
-    // In Electron development, process.cwd() is usually the project root
-    // In production, it might vary, but for this migration script which runs on startup
-    // we'll look relative to the app execution.
-    // NOTE: For safety in production, one might want to bundle default users or handle this differently.
-    const usersPath = path.resolve(process.cwd(), 'initial_users.json');
-    
-    if (fs.existsSync(usersPath)) {
-      console.log(`Loading default users from: ${usersPath}`);
-      const fileContent = fs.readFileSync(usersPath, 'utf-8');
-      defaultUsers = JSON.parse(fileContent);
-    } else {
-      console.log('initial_users.json not found in root, skipping default user seeding.');
+  const defaultUsers = [
+    {
+      username: "sobhy",
+      password: "010medo2012soso2015",
+      full_name: "Sobhy Shaaban",
+      role: "admin"
+    },
+    {
+      username: "t0khyo",
+      password: "abdelrahman",
+      full_name: "Abdelrahman Eltokhy",
+      role: "admin"
+    },
+    {
+      username: "employee",
+      password: "secret",
+      full_name: "Employee 2",
+      role: "employee"
+    },
+    {
+      username: "10",
+      password: "10",
+      full_name: "موظف 1",
+      role: "employee"
     }
-  } catch (error) {
-    console.error('Error loading initial_users.json:', error);
-  }
+  ];
 
 
   const insertUser = db.prepare(`
