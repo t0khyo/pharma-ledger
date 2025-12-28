@@ -21,13 +21,13 @@ export default function FinancialReports() {
   const [summary, setSummary] = useState<MonthSummary | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Calculate custom month range (8th to 9th of next month)
+  // Calculate custom month range (9th to 8th of next month)
   const getDateRange = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
 
-    const start = new Date(year, month, 8);
-    const end = new Date(year, month + 1, 9);
+    const start = new Date(year, month, 9);
+    const end = new Date(year, month + 1, 8);
 
     // Format as YYYY-MM-DD using local date to avoid timezone issues
     const formatLocalDate = (d: Date) => {
