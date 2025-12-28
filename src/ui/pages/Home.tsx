@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { companyService } from "@/services/company.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
+  const { user, hasRole } = useAuth();
   const stats = [
     {
       title: "إجمالي الديون",
@@ -52,6 +54,12 @@ export default function Home() {
     },
   ];
 
+  const visibleStats = hasRole("admin")
+    ? stats
+    : stats.filter(
+        (s) => s.title !== "إجمالي الديون" && s.title !== "الإيرادات الشهرية"
+      );
+
   const recentActivities = [
     {
       customer: "أحمد محمد",
@@ -85,7 +93,7 @@ export default function Home() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            مرحباً، د. صبحي شعبان
+            مرحباً، {user?.full_name || "بالكريم"}
           </h1>
           <p className="text-muted-foreground mt-1">
             نظرة عامة على نشاط دفتر المحاسبة
@@ -99,7 +107,7 @@ export default function Home() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {visibleStats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">

@@ -5,6 +5,7 @@ import {
   IconBuildings,
   IconCreditCard,
   IconUsers,
+  IconHome,
 } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -26,6 +27,12 @@ import {
 import logoImage from "@/assets/logo.png";
 
 const navItems = [
+  {
+    title: "الرئيسية",
+    url: "/",
+    icon: IconHome,
+    roles: ["admin", "employee"],
+  },
   {
     title: "الديون",
     url: "/debts",
