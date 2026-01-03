@@ -35,6 +35,11 @@ export class EmailService {
     return { host, port, user, pass, sender, recipient };
   }
 
+  private static getBackupFilename(): string {
+    const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    return `pharma_ledger_${date}.db`;
+  }
+
   static async sendBackup(filePath: string): Promise<boolean> {
     const settings = this.getSettings();
     if (!settings) {
@@ -63,7 +68,7 @@ export class EmailService {
         text: "Attached is the daily database backup for Pharma Ledger.",
         attachments: [
           {
-            filename: "app.db",
+            filename: this.getBackupFilename(),
             path: filePath,
           },
         ],
@@ -105,7 +110,7 @@ export class EmailService {
         text: "This is a test email to confirm your backup settings are configured correctly. \n\nAttached is the current database backup.",
         attachments: [
           {
-            filename: "app.db",
+            filename: this.getBackupFilename(),
             path: dbPath,
           },
         ],

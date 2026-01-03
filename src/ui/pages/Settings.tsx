@@ -182,12 +182,12 @@ export default function Settings() {
 
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={handleTestEmail} disabled={testing || !settings.backup_smtp_user}>
+              إرسال نسخة احتياطية
               {testing ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Mail className="w-4 h-4 ml-2" />}
-              إرسال نسخ احتياطية تجريبية
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Save className="w-4 h-4 ml-2" />}
               حفظ الإعدادات
+              {saving ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Save className="w-4 h-4 ml-2" />}
             </Button>
           </div>
           
