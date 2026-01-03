@@ -6,6 +6,7 @@ import {
   IconCreditCard,
   IconUsers,
   IconHome,
+  IconSettings,
 } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -111,6 +112,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="الإعدادات"
+              isActive={location.pathname === "/settings"}
+            >
+              <Link to="/settings">
+                <IconSettings />
+                <span>الإعدادات</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <NavUser
           user={{
             name: user?.full_name || "Guest",

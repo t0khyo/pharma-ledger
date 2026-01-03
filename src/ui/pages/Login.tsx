@@ -11,15 +11,18 @@ import logoImage from "@/assets/logo.png";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!username || !password) {
-      toast.error("الرجاء إدخال اسم المستخدم وكلمة المرور");
+      const msg = "الرجاء إدخال اسم المستخدم وكلمة المرور";
+      setError(msg);
       return;
     }
 
@@ -29,8 +32,9 @@ export default function Login() {
       await login({ username, password });
       toast.success("تم تسجيل الدخول بنجاح");
       navigate("/", { replace: true });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "فشل تسجيل الدخول");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "فشل تسجيل الدخول";
+      setError(msg);
       setPassword("");
     } finally {
       setIsLoading(false);
@@ -93,6 +97,13 @@ export default function Login() {
                 />
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                {error}
+              </div>
+            )}
 
             {/* Submit Button */}
             <Button

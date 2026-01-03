@@ -50,6 +50,12 @@ const financialApi = {
     ipcRenderer.invoke("financial:deleteEntry", date),
 };
 
+const settingsApi = {
+  get: (): Promise<any> => ipcRenderer.invoke("settings:get"),
+  save: (settings: any): Promise<any> => ipcRenderer.invoke("settings:save", settings),
+  testEmail: (settings: any): Promise<any> => ipcRenderer.invoke("settings:test-email", settings),
+};
+
 const authApi = {
   login: (credentials: LoginCredentials): Promise<ApiResponse<User>> =>
     ipcRenderer.invoke("auth:login", credentials),
@@ -66,4 +72,5 @@ contextBridge.exposeInMainWorld("api", {
   company: companyApi,
   financial: financialApi,
   auth: authApi,
+  settings: settingsApi,
 });

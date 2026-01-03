@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -154,7 +153,7 @@ export function FinancialTable({
   return (
     <div className="border rounded-lg overflow-hidden relative">
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-        <Table>
+        <table className="w-full caption-bottom text-sm">
           <TableHeader className="sticky top-0 bg-background z-30 shadow-sm">
             <TableRow>
               <TableHead className="text-right font-bold w-28">التاريخ</TableHead>
@@ -271,7 +270,7 @@ export function FinancialTable({
               );
             })}
           </TableBody>
-        </Table>
+        </table>
       </div>
     </div>
   );

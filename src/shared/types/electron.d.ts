@@ -44,10 +44,19 @@ export interface AuthApi {
   getCurrentUser: () => Promise<ApiResponse<User | null>>;
 }
 
+import { EmailSettings, TestEmailSettings } from "./settings.types";
+
+export interface SettingsApi {
+  get: () => Promise<EmailSettings>;
+  save: (settings: EmailSettings) => Promise<ApiResponse<void>>;
+  testEmail: (settings: TestEmailSettings) => Promise<ApiResponse<void>>;
+}
+
 export interface ElectronApi {
   company: CompanyApi;
   financial: FinancialApi;
   auth: AuthApi;
+  settings: SettingsApi;
 }
 
 declare global {
