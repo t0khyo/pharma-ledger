@@ -71,6 +71,9 @@ const authApi = {
 
   updateProfile: (userId: string, data: { full_name: string }): Promise<ApiResponse<void>> =>
     ipcRenderer.invoke("auth:updateProfile", { userId, data }),
+
+  uploadAvatar: (userId: string, base64Data: string): Promise<ApiResponse<string>> =>
+    ipcRenderer.invoke("auth:uploadAvatar", { userId, base64Data }),
 };
 
 // Expose the API to the renderer process

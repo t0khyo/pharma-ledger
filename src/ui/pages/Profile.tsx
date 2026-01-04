@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { User, Lock, Save, Shield } from "lucide-react";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // We might need to update user context
   
   // Profile Form State
   const [profileData, setProfileData] = useState({
@@ -31,6 +32,46 @@ export default function Profile() {
       });
     }
   }, [user]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("حجم الصورة يجب أن لا يتجاوز 2 ميجابايت");
+      return;
+    }
+
+    setProfileLoading(true);
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      try {
+        const base64Data = reader.result as string;
+        const result = await window.api.auth.uploadAvatar(user!.user_id, base64Data);
+
+        if (result.success) {
+          toast.success("تم تحديث الصورة الشخصية");
+          // Update user context with new avatar path effectively
+          // Since our auth context relies on session, we might need a way to refresh it.
+          // For now, the backend updates the current session, but frontend needs a trigger.
+          // A full page reload is a heavy hammer, but works.
+          // Better: expose a refreshUser method in AuthContext.
+          window.location.reload(); 
+        } else {
+          toast.error(result.error || "فشل رفع الصورة");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("حدث خطأ أثناء رفع الصورة");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,6 +171,22 @@ export default function Profile() {
                   onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
                   placeholder="الاسم الكامل"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>الصورة الشخصية</Label>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16">
+                     <AvatarImage src={user?.avatar_path || undefined} />
+                    <AvatarFallback>{user?.full_name?.charAt(0) || "U"}</AvatarFallback>
+                  </Avatar>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    className="w-full"
+                    onChange={handleAvatarUpload}
+                    disabled={profileLoading}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>الدور الوظيفي</Label>

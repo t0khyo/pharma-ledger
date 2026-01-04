@@ -44,6 +44,7 @@ export interface AuthApi {
   getCurrentUser: () => Promise<ApiResponse<User | null>>;
   updatePassword: (userId: string, password: string) => Promise<ApiResponse<void>>;
   updateProfile: (userId: string, data: { full_name: string }) => Promise<ApiResponse<void>>;
+  uploadAvatar: (userId: string, base64Data: string) => Promise<ApiResponse<string>>;
 }
 
 import { EmailSettings, TestEmailSettings } from "./settings.types.js";

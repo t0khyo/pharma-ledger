@@ -1,6 +1,9 @@
 import { getDatabaseConnection } from "../db/db.js";
 import bcrypt from "bcryptjs";
 import type { User } from "../../shared/types/user.types.js";
+import path from "path";
+import fs from "fs";
+import { app } from "electron";
 
 interface UserRow {
   user_id: string;
@@ -8,6 +11,7 @@ interface UserRow {
   password_hash: string;
   full_name: string;
   role: "admin" | "employee";
+  avatar_path: string | null;
   created_at: string;
 }
 
@@ -38,6 +42,7 @@ export class UserService {
       username: user.username,
       full_name: user.full_name,
       role: user.role,
+      avatar_path: user.avatar_path || undefined,
       created_at: user.created_at,
     };
   }
@@ -61,6 +66,7 @@ export class UserService {
       username: user.username,
       full_name: user.full_name,
       role: user.role,
+      avatar_path: user.avatar_path || undefined,
       created_at: user.created_at,
     };
   }
@@ -84,6 +90,7 @@ export class UserService {
       username: user.username,
       full_name: user.full_name,
       role: user.role,
+      avatar_path: user.avatar_path || undefined,
       created_at: user.created_at,
     };
   }
@@ -113,5 +120,36 @@ export class UserService {
       .run(data.full_name, userId);
 
     return result.changes > 0;
+  }
+
+  /**
+   * Update user avatar
+   */
+  static updateAvatar(userId: string, base64Data: string): string {
+    const db = getDatabaseConnection();
+    
+    // Save image to userdata
+    const userDataPath = app.getPath("userData");
+    const avatarsDir = path.join(userDataPath, "avatars");
+    
+    if (!fs.existsSync(avatarsDir)) {
+      fs.mkdirSync(avatarsDir, { recursive: true });
+    }
+
+    // Remove header if present (data:image/png;base64,)
+    const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Image, "base64");
+    
+    // Use timestamp to prevent caching issues on the frontend
+    const filename = `${userId}_${Date.now()}.png`;
+    const filePath = path.join(avatarsDir, filename);
+    
+    fs.writeFileSync(filePath, buffer);
+
+    // Update DB with the new file path
+    db.prepare("UPDATE users SET avatar_path = ? WHERE user_id = ?")
+      .run(filePath, userId);
+
+    return filePath;
   }
 }

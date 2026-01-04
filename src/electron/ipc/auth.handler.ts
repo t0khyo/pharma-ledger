@@ -1,10 +1,27 @@
 import { ipcMain } from "electron";
+import fs from "fs";
 import { UserService } from "../services/user.service.js";
 import type { LoginCredentials, User } from "../../shared/types/user.types.js";
 import type { ApiResponse } from "../../shared/types/electron.js";
 
 // In-memory session storage (cleared on app restart)
 let currentUser: User | null = null;
+
+
+// Helper to load avatar
+function loadUserAvatar(user: User): User {
+  if (user.avatar_path && fs.existsSync(user.avatar_path)) {
+    try {
+      const bitmap = fs.readFileSync(user.avatar_path);
+      const base64 = Buffer.from(bitmap).toString("base64");
+      const mimeType = user.avatar_path.endsWith(".png") ? "image/png" : "image/jpeg";
+      return { ...user, avatar_path: `data:${mimeType};base64,${base64}` };
+    } catch (e) {
+      console.error("Failed to load avatar", e);
+    }
+  }
+  return user;
+}
 
 export function registerAuthHandlers() {
   console.log("Registering auth handlers...");
@@ -19,7 +36,7 @@ export function registerAuthHandlers() {
       try {
         console.log(`Login attempt for user: ${credentials.username}`);
 
-        const user = UserService.authenticate(
+        let user = UserService.authenticate(
           credentials.username,
           credentials.password
         );
@@ -30,6 +47,8 @@ export function registerAuthHandlers() {
             error: "اسم المستخدم أو كلمة المرور غير صحيحة",
           };
         }
+
+        user = loadUserAvatar(user);
 
         // Store user in session
         currentUser = user;
@@ -72,6 +91,16 @@ export function registerAuthHandlers() {
     "auth:getCurrentUser",
     async (): Promise<ApiResponse<User | null>> => {
       try {
+        if (currentUser) {
+          // Refresh avatar in case it changed
+          // We need to re-fetch from DB or keep path in session. 
+          // For simplicity, let's just assume session has the base64 or path.
+          // Ideally, we should fetch fresh from DB here.
+           const freshUser = UserService.getUserById(currentUser.user_id);
+           if (freshUser) {
+             currentUser = loadUserAvatar(freshUser);
+           }
+        }
         return {
           success: true,
           data: currentUser,
@@ -147,6 +176,36 @@ export function registerAuthHandlers() {
           success: false,
           error: "حدث خطأ أثناء تحديث البيانات",
         };
+      }
+    }
+  );
+
+  // Upload avatar handler
+  ipcMain.handle(
+    "auth:uploadAvatar",
+    async (
+      _event,
+      { userId, base64Data }: { userId: string; base64Data: string }
+    ): Promise<ApiResponse<string>> => {
+      try {
+        if (!currentUser) {
+           return { success: false, error: "يجب تسجيل الدخول أولاً" };
+        }
+        
+        if (currentUser.user_id !== userId) {
+           return { success: false, error: "غير مصرح لك" };
+        }
+
+        const filePath = UserService.updateAvatar(userId, base64Data);
+        
+        // Return base64 for immediate update
+        const userWithAvatar = loadUserAvatar({ ...currentUser, avatar_path: filePath });
+        currentUser = userWithAvatar;
+
+        return { success: true, data: userWithAvatar.avatar_path };
+      } catch (error) {
+        console.error("Upload avatar error:", error);
+        return { success: false, error: "فشل رفع الصورة" };
       }
     }
   );

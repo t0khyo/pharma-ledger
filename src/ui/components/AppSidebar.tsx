@@ -113,37 +113,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              tooltip="الإعدادات"
-              isActive={location.pathname === "/settings"}
-            >
-              <Link to="/settings">
-                <IconSettings />
-                <span>الإعدادات</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              tooltip="الملف الشخصي"
-              isActive={location.pathname === "/profile"}
-            >
-              <Link to="/profile">
-                <IconUser />
-                <span>الملف الشخصي</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+
         <NavUser
           user={{
             name: user?.full_name || "Guest",
             email: user?.role === "admin" ? "مسؤول" : "موظف",
-            avatar: "/assets/avatar.png",
+            avatar: user?.avatar_path || "/assets/avatar.png",
           }}
         />
       </SidebarFooter>

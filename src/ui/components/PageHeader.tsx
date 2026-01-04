@@ -11,6 +11,7 @@ const pageTitles: Record<string, string> = {
   "/companies": "الشركات",
   "/settings": "الإعدادات",
   "/search": "البحث",
+  "/profile": "الملف الشخصي",
 };
 
 export function PageHeader() {
