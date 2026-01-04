@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { CreateTransactionInput, PaymentMethod } from "src/shared/types/transaction.types";
 import type { Customer } from "src/shared/types/customer.types";
@@ -21,6 +25,7 @@ export function AddPaymentDialog({ open, onOpenChange, onSuccess }: AddPaymentDi
   const [amount, setAmount] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [notes, setNotes] = useState("");
+  const [openCombobox, setOpenCombobox] = useState(false);
 
   // Fetch customers
   useEffect(() => {
@@ -63,7 +68,7 @@ export function AddPaymentDialog({ open, onOpenChange, onSuccess }: AddPaymentDi
 
       const result = await window.api.transactions.add(input);
       if (result.success) {
-        toast.success("تم تسجيل الدفعة بنجاح");
+        toast.success("تم تسجيل التسديد بنجاح");
         onSuccess();
         onOpenChange(false);
         // Reset form
@@ -72,11 +77,11 @@ export function AddPaymentDialog({ open, onOpenChange, onSuccess }: AddPaymentDi
         setPaymentMethod("cash");
         setNotes("");
       } else {
-        toast.error(result.error || "فشل تسجيل الدفعة");
+        toast.error(result.error || "فشل تسجيل التسديد");
       }
     } catch (error) {
       console.error(error);
-      toast.error("حدث خطأ أثناء تسجيل الدفعة");
+      toast.error("حدث خطأ أثناء تسجيل التسديد");
     } finally {
       setLoading(false);
     }
@@ -86,27 +91,58 @@ export function AddPaymentDialog({ open, onOpenChange, onSuccess }: AddPaymentDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>تسجيل دفعة جديدة</DialogTitle>
+          <DialogTitle>تسجيل تسديد جديد</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <Label>العميل</Label>
-            <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر العميل" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.id.toString()}>
-                    {customer.name} {customer.phone ? `(${customer.phone})` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openCombobox}
+                  className="w-full justify-between"
+                >
+                  {selectedCustomer
+                    ? customers.find((customer) => customer.id.toString() === selectedCustomer)?.name
+                    : "اختر العميل..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                <Command>
+                    <CommandInput placeholder="بحث عن عميل..." />
+                    <CommandList>
+                        <CommandEmpty>لم يتم العثور على عميل.</CommandEmpty>
+                        <CommandGroup>
+                        {customers.map((customer) => (
+                            <CommandItem
+                            key={customer.id}
+                            value={customer.name}
+                            onSelect={() => {
+                                setSelectedCustomer(customer.id.toString());
+                                setOpenCombobox(false);
+                            }}
+                            >
+                            <Check
+                                className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedCustomer === customer.id.toString() ? "opacity-100" : "opacity-0"
+                                )}
+                            />
+                            {customer.name} {customer.phone ? `(${customer.phone})` : ""}
+                            </CommandItem>
+                        ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
-            <Label>المبلغ المدفوع</Label>
+            <Label>المبلغ المسدد</Label>
             <Input
               type="number"
               placeholder="0.00"
@@ -144,7 +180,7 @@ export function AddPaymentDialog({ open, onOpenChange, onSuccess }: AddPaymentDi
                     إلغاء
                 </Button>
                 <Button className="flex-1" onClick={handleSubmit} disabled={loading}>
-                    {loading ? "جاري الحفظ..." : "تسجيل الدفعة"}
+                    {loading ? "جاري الحفظ..." : "تسجيل التسديد"}
                 </Button>
             </div>
         </DialogFooter>

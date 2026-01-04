@@ -131,17 +131,17 @@ export default function Debts() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الديون</CardTitle>
-            <IconArrowUpRight className="h-4 w-4 text-red-500" />
+            <IconArrowUpRight className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-blue-600">
               {formatCurrency(stats.totalDebts)}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي المدفوعات</CardTitle>
+            <CardTitle className="text-sm font-medium">إجمالي التسديدات</CardTitle>
             <IconArrowDownLeft className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -153,10 +153,10 @@ export default function Debts() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
-            <IconWallet className="h-4 w-4 text-muted-foreground" />
+            <IconWallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : stats.netBalance > 0 ? "text-yellow-500" : "text-green-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.netBalance >= 0 ? "text-green-600" : "text-red-600"}`}>
+            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : stats.netBalance > 0 ? "text-yellow-600" : "text-green-600"}`}>
               {formatCurrency(stats.netBalance)}
             </div>
           </CardContent>
@@ -175,11 +175,11 @@ export default function Debts() {
           />
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <Button onClick={() => setShowAddPayment(true)} className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700">
+          <Button onClick={() => setShowAddPayment(true)} variant="default" className="flex-1 sm:flex-none">
             <IconPlus className="ml-2 h-4 w-4" />
-            تسجيل دفعة
+            تسجيل تسديد
           </Button>
-          <Button onClick={() => setShowAddDebt(true)} variant="destructive" className="flex-1 sm:flex-none">
+          <Button onClick={() => setShowAddDebt(true)} variant="default" className="flex-1 sm:flex-none">
             <IconPlus className="ml-2 h-4 w-4" />
             إضافة دين
           </Button>
@@ -224,7 +224,7 @@ export default function Debts() {
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {transaction.type === "payment" ? "دفعة" : "دين"}
+                      {transaction.type === "payment" ? "تسديد" : "دين"}
                     </span>
                   </TableCell>
                   <TableCell className="font-bold">
@@ -311,7 +311,7 @@ export default function Debts() {
                                 : "bg-red-100 text-red-800"
                             }`}
                             >
-                            {selectedTransaction.type === "payment" ? "دفعة" : "دين"}
+                            {selectedTransaction.type === "payment" ? "تسديد" : "دين"}
                             </span>
                         </div>
                     </div>

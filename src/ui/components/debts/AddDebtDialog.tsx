@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Plus, Minus, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { CreateTransactionInput } from "src/shared/types/transaction.types";
 import type { Customer } from "src/shared/types/customer.types";
@@ -22,6 +24,7 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
   const [amount, setAmount] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [products, setProducts] = useState<{ name: string; id: number }[]>([{ name: "", id: 1 }]);
+  const [openCombobox, setOpenCombobox] = useState(false);
 
   // Fetch customers
   useEffect(() => {
@@ -106,21 +109,52 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
         <DialogHeader>
           <DialogTitle>إضافة دين جديد</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto px-1">
           <div className="space-y-2">
             <Label>العميل</Label>
-            <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر العميل" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.id.toString()}>
-                    {customer.name} {customer.phone ? `(${customer.phone})` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openCombobox}
+                  className="w-full justify-between"
+                >
+                  {selectedCustomer
+                    ? customers.find((customer) => customer.id.toString() === selectedCustomer)?.name
+                    : "اختر العميل..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                <Command>
+                    <CommandInput placeholder="بحث عن عميل..." />
+                    <CommandList>
+                        <CommandEmpty>لم يتم العثور على عميل.</CommandEmpty>
+                        <CommandGroup>
+                        {customers.map((customer) => (
+                            <CommandItem
+                            key={customer.id}
+                            value={customer.name}
+                            onSelect={() => {
+                                setSelectedCustomer(customer.id.toString());
+                                setOpenCombobox(false);
+                            }}
+                            >
+                            <Check
+                                className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedCustomer === customer.id.toString() ? "opacity-100" : "opacity-0"
+                                )}
+                            />
+                            {customer.name} {customer.phone ? `(${customer.phone})` : ""}
+                            </CommandItem>
+                        ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
