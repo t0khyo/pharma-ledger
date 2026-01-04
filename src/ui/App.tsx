@@ -10,6 +10,7 @@ import FinancialReports from "@/pages/FinancialReports";
 import Customers from "@/pages/Customers";
 import Companies from "@/pages/Companies";
 import Settings from "@/pages/Settings";
+import Profile from "@/pages/Profile";
 
 function App() {
   return (
@@ -51,6 +52,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+
+            <Route path="profile" element={<Profile />} />
           </Route>
 
           {/* Catch all - redirect to home */}

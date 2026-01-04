@@ -42,9 +42,12 @@ export interface AuthApi {
   login: (credentials: LoginCredentials) => Promise<ApiResponse<User>>;
   logout: () => Promise<ApiResponse<void>>;
   getCurrentUser: () => Promise<ApiResponse<User | null>>;
+  updatePassword: (userId: string, password: string) => Promise<ApiResponse<void>>;
+  updateProfile: (userId: string, data: { full_name: string }) => Promise<ApiResponse<void>>;
 }
 
-import { EmailSettings, TestEmailSettings } from "./settings.types";
+import { EmailSettings, TestEmailSettings } from "./settings.types.js";
+import { Customer, CustomerInput } from "./customer.types.js";
 
 export interface SettingsApi {
   get: () => Promise<EmailSettings>;
@@ -52,11 +55,19 @@ export interface SettingsApi {
   testEmail: (settings: TestEmailSettings) => Promise<ApiResponse<void>>;
 }
 
+export interface CustomersApi {
+  getAll: (search?: string) => Promise<ApiResponse<Customer[]>>;
+  add: (customer: CustomerInput) => Promise<ApiResponse<Customer>>;
+  update: (id: number, customer: CustomerInput) => Promise<ApiResponse<void>>;
+  delete: (id: number) => Promise<ApiResponse<void>>;
+}
+
 export interface ElectronApi {
   company: CompanyApi;
   financial: FinancialApi;
   auth: AuthApi;
   settings: SettingsApi;
+  customers: CustomersApi;
 }
 
 declare global {

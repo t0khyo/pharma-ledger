@@ -87,4 +87,31 @@ export class UserService {
       created_at: user.created_at,
     };
   }
+  /**
+   * Update user password
+   */
+  static updatePassword(userId: string, password: string): boolean {
+    const db = getDatabaseConnection();
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+
+    const result = db
+      .prepare("UPDATE users SET password_hash = ? WHERE user_id = ?")
+      .run(hash, userId);
+
+    return result.changes > 0;
+  }
+
+  /**
+   * Update user profile details
+   */
+  static updateProfile(userId: string, data: { full_name: string }): boolean {
+    const db = getDatabaseConnection();
+    
+    const result = db
+      .prepare("UPDATE users SET full_name = ? WHERE user_id = ?")
+      .run(data.full_name, userId);
+
+    return result.changes > 0;
+  }
 }

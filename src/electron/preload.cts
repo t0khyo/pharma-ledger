@@ -65,6 +65,12 @@ const authApi = {
 
   getCurrentUser: (): Promise<ApiResponse<User | null>> =>
     ipcRenderer.invoke("auth:getCurrentUser"),
+
+  updatePassword: (userId: string, password: string): Promise<ApiResponse<void>> =>
+    ipcRenderer.invoke("auth:updatePassword", { userId, password }),
+
+  updateProfile: (userId: string, data: { full_name: string }): Promise<ApiResponse<void>> =>
+    ipcRenderer.invoke("auth:updateProfile", { userId, data }),
 };
 
 // Expose the API to the renderer process
@@ -73,4 +79,10 @@ contextBridge.exposeInMainWorld("api", {
   financial: financialApi,
   auth: authApi,
   settings: settingsApi,
+  customers: {
+    getAll: (search?: string) => ipcRenderer.invoke("customers:get-all", search),
+    add: (customer: any) => ipcRenderer.invoke("customers:add", customer),
+    update: (id: number, customer: any) => ipcRenderer.invoke("customers:update", { id, customer }),
+    delete: (id: number) => ipcRenderer.invoke("customers:delete", id),
+  },
 });

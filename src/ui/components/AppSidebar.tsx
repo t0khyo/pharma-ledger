@@ -7,6 +7,7 @@ import {
   IconUsers,
   IconHome,
   IconSettings,
+  IconUser,
 } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -122,6 +123,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link to="/settings">
                 <IconSettings />
                 <span>الإعدادات</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="الملف الشخصي"
+              isActive={location.pathname === "/profile"}
+            >
+              <Link to="/profile">
+                <IconUser />
+                <span>الملف الشخصي</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
