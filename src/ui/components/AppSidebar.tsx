@@ -6,8 +6,6 @@ import {
   IconCreditCard,
   IconUsers,
   IconHome,
-  IconSettings,
-  IconUser,
 } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 

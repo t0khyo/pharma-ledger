@@ -49,6 +49,7 @@ export interface AuthApi {
 
 import { EmailSettings, TestEmailSettings } from "./settings.types.js";
 import { Customer, CustomerInput } from "./customer.types.js";
+import { CreateTransactionInput, Transaction, TransactionFilters, TransactionStats } from "./transaction.types.js";
 
 export interface SettingsApi {
   get: () => Promise<EmailSettings>;
@@ -69,6 +70,7 @@ export interface ElectronApi {
   auth: AuthApi;
   settings: SettingsApi;
   customers: CustomersApi;
+  transactions: TransactionApi;
 }
 
 declare global {
