@@ -16,9 +16,19 @@ interface AddPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  defaultCustomerId?: string;
+  defaultAmount?: number;
+  defaultNotes?: string;
 }
 
-export function AddPaymentDialog({ open, onOpenChange, onSuccess }: AddPaymentDialogProps) {
+export function AddPaymentDialog({ 
+    open, 
+    onOpenChange, 
+    onSuccess,
+    defaultCustomerId,
+    defaultAmount,
+    defaultNotes
+}: AddPaymentDialogProps) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
@@ -26,6 +36,20 @@ export function AddPaymentDialog({ open, onOpenChange, onSuccess }: AddPaymentDi
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [notes, setNotes] = useState("");
   const [openCombobox, setOpenCombobox] = useState(false);
+
+  // Initialize with defaults when dialog opens
+  useEffect(() => {
+    if (open) {
+        if (defaultCustomerId) setSelectedCustomer(defaultCustomerId);
+        if (defaultAmount) setAmount(defaultAmount.toString());
+        if (defaultNotes) setNotes(defaultNotes);
+    } else {
+        // Reset when closed (optional, but good for cleaning up if not handled by parent)
+        if (!defaultCustomerId) setSelectedCustomer("");
+        if (!defaultAmount) setAmount("");
+        if (!defaultNotes) setNotes("");
+    }
+  }, [open, defaultCustomerId, defaultAmount, defaultNotes]);
 
   // Fetch customers
   useEffect(() => {
