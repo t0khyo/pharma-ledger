@@ -74,15 +74,15 @@ export default function Settings() {
       });
 
       if (result.success) {
-        toast.success("تم الاتصال بنجاح!");
+        toast.success("تم الإرسال بنجاح!");
       } else {
         const errorMsg = result.error || "خطأ غير معروف";
         setTestError(errorMsg);
-        toast.error(`فشل الاتصال`);
+        toast.error(`فشل الإرسال`);
       }
     } catch (error) {
       setTestError(String(error));
-      toast.error("حدث خطأ أثناء اختبار الاتصال");
+      toast.error("حدث خطأ أثناء إرسال النسخة الإحتياطية");
     } finally {
       setTesting(false);
     }

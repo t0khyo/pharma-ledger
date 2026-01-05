@@ -21,7 +21,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -52,7 +51,7 @@ export default function Debts() {
   });
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+
 
   // Dialog states
   const [showAddDebt, setShowAddDebt] = useState(false);
@@ -73,7 +72,7 @@ export default function Debts() {
   }, [searchQuery]);
 
   const loadData = async () => {
-    setLoading(true);
+
     try {
       const [transactionsResult, statsResult] = await Promise.all([
         window.api.transactions.getAll(filters),
@@ -90,7 +89,7 @@ export default function Debts() {
       console.error("Failed to load data", error);
       toast.error("فشل تحميل البيانات");
     } finally {
-      setLoading(false);
+
     }
   };
 
