@@ -3,6 +3,7 @@ export interface Customer {
   name: string;
   phone?: string;
   notes?: string;
+  balance?: number;
   created_at?: string;
 }
 

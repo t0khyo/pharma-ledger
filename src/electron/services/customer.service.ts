@@ -4,13 +4,23 @@ import type { Customer, CustomerInput } from "../../shared/types/customer.types.
 export class CustomerService {
   static getAll(search?: string): Customer[] {
     const db = getDatabaseConnection();
-    let query = "SELECT * FROM customers ORDER BY created_at DESC";
+    let query = `
+      SELECT c.*, 
+        COALESCE(SUM(CASE 
+          WHEN t.type = 'payment' THEN t.amount 
+          WHEN t.type = 'debt' THEN -t.amount 
+          ELSE 0 END), 0) as balance
+      FROM customers c
+      LEFT JOIN transactions t ON c.id = t.customer_id AND t.is_deleted = 0
+    `;
     let params: any[] = [];
 
     if (search) {
-      query = "SELECT * FROM customers WHERE name LIKE ? OR phone LIKE ? ORDER BY created_at DESC";
-      params = [`%${search}%`, `%${search}%`];
+      query += " WHERE c.name LIKE ? OR c.phone LIKE ?";
+      params.push(`%${search}%`, `%${search}%`);
     }
+
+    query += " GROUP BY c.id ORDER BY c.created_at DESC";
 
     return db.prepare(query).all(...params) as Customer[];
   }

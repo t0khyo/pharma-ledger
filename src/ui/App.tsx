@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import Debts from "@/pages/Debts";
 import FinancialReports from "@/pages/FinancialReports";
 import Customers from "@/pages/Customers";
+import CustomerDetails from "@/pages/CustomerDetails";
 import Companies from "@/pages/Companies";
 import Settings from "@/pages/Settings";
 import Profile from "@/pages/Profile";
@@ -32,6 +33,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="debts" element={<Debts />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="customers/:id" element={<CustomerDetails />} />
             <Route path="companies" element={<Companies />} />
             
             {/* Admin-only route */}

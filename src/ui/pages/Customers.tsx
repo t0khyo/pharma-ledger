@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Pencil, Trash2, User, Phone, FileText } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +22,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { Customer, CustomerInput } from "../../shared/types/customer.types";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+
 export default function Customers() {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -147,8 +157,9 @@ export default function Customers() {
               <TableHead className="w-[50px]">#</TableHead>
               <TableHead>اسم العميل</TableHead>
               <TableHead>رقم الهاتف</TableHead>
+              <TableHead>الرصيد</TableHead>
               <TableHead>ملاحظات</TableHead>
-              <TableHead className="text-left">إجراءات</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -160,7 +171,11 @@ export default function Customers() {
               </TableRow>
             ) : (
               customers.map((customer, index) => (
-                <TableRow key={customer.id}>
+                <TableRow 
+                  key={customer.id} 
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => navigate(`/customers/${customer.id}`)}
+                >
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -181,6 +196,18 @@ export default function Customers() {
                     )}
                   </TableCell>
                   <TableCell>
+                    <span className={cn(
+                      "font-bold",
+                      (customer.balance || 0) < 0 ? "text-red-600" : 
+                      (customer.balance || 0) > 0 ? "text-yellow-600" : "text-green-600"
+                    )}>
+                      {new Intl.NumberFormat("ar-EG", {
+                        style: "currency",
+                        currency: "EGP",
+                      }).format(customer.balance || 0)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
                      {customer.notes ? (
                       <div className="flex items-center gap-2 max-w-[200px] truncate" title={customer.notes}>
                         <FileText className="w-3 h-3 text-muted-foreground" />
@@ -190,15 +217,28 @@ export default function Customers() {
                       "-"
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(customer)}>
-                        <Pencil className="w-4 h-4 text-blue-500" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(customer.id)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </div>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/customers/${customer.id}`)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          عرض التفاصيل
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenDialog(customer)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          تعديل
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(customer.id)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          حذف
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
