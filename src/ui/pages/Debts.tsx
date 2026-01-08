@@ -47,6 +47,7 @@ export default function Debts() {
   const [stats, setStats] = useState<TransactionStats>({
     totalDebts: 0,
     totalPayments: 0,
+    unpaidDebts: 0,
     netBalance: 0,
   });
   const [filters, setFilters] = useState<TransactionFilters>({});
@@ -126,7 +127,7 @@ export default function Debts() {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الديون</CardTitle>
@@ -157,6 +158,18 @@ export default function Debts() {
           <CardContent>
             <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : stats.netBalance > 0 ? "text-yellow-600" : "text-green-600"}`}>
               {formatCurrency(stats.netBalance)}
+            </div>
+          </CardContent>
+        </Card>
+        {/* Unpaid Debts Card */}
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-red-600">الديون غير المسددة</CardTitle>
+            <IconArrowUpRight className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(stats.unpaidDebts)}
             </div>
           </CardContent>
         </Card>
@@ -282,11 +295,12 @@ export default function Debts() {
 
        {/* View Transaction Dialog */}
        <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>تفاصيل العملية #{selectedTransaction?.id}</DialogTitle>
           </DialogHeader>
           
+          <div className="flex-1 overflow-y-auto px-1">
           {selectedTransaction && (
              <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -329,7 +343,6 @@ export default function Debts() {
                                     selectedTransaction.items.map((item, idx) => (
                                         <div key={idx} className="flex justify-between text-sm">
                                             <span>{item.product_name}</span>
-                                            <span className="text-muted-foreground">x{item.quantity || 1}</span>
                                         </div>
                                     ))
                                 ) : (
@@ -356,6 +369,7 @@ export default function Debts() {
                 )}
              </div>
           )}
+          </div>
 
           <DialogFooter>
              <Button variant="destructive" onClick={() => selectedTransaction && handleDelete(selectedTransaction.id)}>

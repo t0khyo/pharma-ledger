@@ -186,12 +186,56 @@ export class TransactionService {
 
     const result = db.prepare(query).get(...params) as any;
     
+    // Calculate total unpaid debts (sum of negative balances only)
+    let unpaidDebtsQuery = `
+        SELECT 
+            SUM(CASE 
+                WHEN balance < 0 THEN ABS(balance) 
+                ELSE 0 
+            END) as unpaidDebts
+        FROM (
+            SELECT 
+                SUM(CASE 
+                    WHEN t.type = 'payment' THEN t.amount 
+                    WHEN t.type = 'debt' THEN -t.amount 
+                    ELSE 0 
+                END) as balance
+            FROM transactions t
+            WHERE t.is_deleted = 0
+    `;
+
+    // Apply same filters to the subquery
+    if (filters.customerId) {
+        unpaidDebtsQuery += " AND t.customer_id = ?";
+    }
+    if (filters.startDate) {
+        unpaidDebtsQuery += " AND date(t.date) >= date(?)";
+    }
+    if (filters.endDate) {
+        unpaidDebtsQuery += " AND date(t.date) <= date(?)";
+    }
+    // Note: 'query' (customer name search) is trickier in subquery if we filter transactions first, 
+    // but usually balance is per customer. 
+    // If we filter by customer name, we should join customers in subquery.
+    if (filters.query) {
+         unpaidDebtsQuery += ` 
+            AND t.customer_id IN (SELECT id FROM customers WHERE name LIKE ?)
+         `;
+    }
+
+    unpaidDebtsQuery += " GROUP BY t.customer_id) as customer_balances";
+
+    // Reuse params for the subquery
+    const unpaidResult = db.prepare(unpaidDebtsQuery).get(...params) as any;
+
     const totalDebts = result.totalDebts || 0;
     const totalPayments = result.totalPayments || 0;
+    const unpaidDebts = unpaidResult?.unpaidDebts || 0;
 
     return {
       totalDebts,
       totalPayments,
+      unpaidDebts,
       netBalance: totalPayments - totalDebts
     };
   }

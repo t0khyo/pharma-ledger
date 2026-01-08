@@ -155,6 +155,26 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
                 </Command>
               </PopoverContent>
             </Popover>
+            
+             {/* Current Balance Display */}
+             {selectedCustomer && (() => {
+                const customer = customers.find(c => c.id.toString() === selectedCustomer);
+                if (!customer || customer.balance === undefined) return null;
+                
+                const balance = customer.balance;
+                let colorClass = "text-green-600 font-bold";
+                if (balance < 0) colorClass = "text-red-600 font-bold";
+                else if (balance > 0) colorClass = "text-yellow-600 font-bold";
+
+                return (
+                    <div className="text-xs text-muted-foreground px-1 flex gap-1">
+                        <span>الرصيد الحالي:</span>
+                        <span className={colorClass}>
+                             {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(balance)}
+                        </span>
+                    </div>
+                );
+            })()}
           </div>
 
           <div className="space-y-2">
@@ -196,6 +216,29 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
+            {/* Predicted Balance Display */}
+             {selectedCustomer && (() => {
+                const customer = customers.find(c => c.id.toString() === selectedCustomer);
+                if (!customer || customer.balance === undefined) return null;
+
+                const currentBalance = customer.balance;
+                const debtAmount = parseFloat(amount) || 0;
+                // Debt subtracts from the balance (makes it more negative)
+                const predictedBalance = currentBalance - debtAmount;
+
+                let colorClass = "text-green-600 font-bold";
+                if (predictedBalance < 0) colorClass = "text-red-600 font-bold";
+                else if (predictedBalance > 0) colorClass = "text-yellow-600 font-bold";
+
+                return (
+                    <div className="text-xs text-muted-foreground px-1 flex gap-1">
+                        <span>الرصيد بعد الدين:</span>
+                        <span className={colorClass}>
+                             {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(predictedBalance)}
+                        </span>
+                    </div>
+                );
+            })()}
           </div>
           
           <div className="space-y-2">

@@ -35,6 +35,7 @@ export interface CreateTransactionInput {
 export interface TransactionStats {
   totalDebts: number;
   totalPayments: number;
+  unpaidDebts: number;
   netBalance: number;
 }
 

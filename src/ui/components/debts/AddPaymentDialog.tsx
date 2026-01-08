@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { CreateTransactionInput, PaymentMethod } from "src/shared/types/transaction.types";
 import type { Customer } from "src/shared/types/customer.types";
+import { format } from "date-fns";
+
 
 interface AddPaymentDialogProps {
   open: boolean;
@@ -118,7 +120,7 @@ export function AddPaymentDialog({
           <DialogTitle>تسجيل تسديد جديد</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="space-y-2">
+            <div className="space-y-2">
             <Label>العميل</Label>
             <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
               <PopoverTrigger asChild>
@@ -163,6 +165,44 @@ export function AddPaymentDialog({
                 </Command>
               </PopoverContent>
             </Popover>
+            
+            {/* Show Balance and Full Payment Button */}
+            {selectedCustomer && (() => {
+                const customer = customers.find(c => c.id.toString() === selectedCustomer);
+                if (!customer || customer.balance === undefined) return null;
+                
+                const balance = customer.balance;
+                let colorClass = "text-green-600 font-bold";
+                if (balance < 0) colorClass = "text-red-600 font-bold";
+                else if (balance > 0) colorClass = "text-yellow-600 font-bold";
+                const isDebt = balance < 0;
+                
+                return (
+                    <div className="flex items-center justify-between text-sm px-1">
+                        <div className="flex gap-2 text-muted-foreground">
+                            <span>الرصيد الحالي:</span>
+                            <span className={colorClass}>
+                                {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(customer.balance)}
+                            </span>
+                        </div>
+                        
+                        {isDebt && (
+                             <Button 
+                                type="button" 
+                                variant="default" // Using default which is usually primary, but overriding with className for specific blue
+                                size="sm" 
+                                className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={() => {
+                                    setAmount(Math.abs(customer.balance!).toString());
+                                    setNotes(`تسديد كامل للمديونية حتى تاريخ ${format(new Date(), "dd/MM/yyyy")}`);
+                                }}
+                            >
+                                سداد كامل الدين
+                            </Button>
+                        )}
+                    </div>
+                );
+            })()}
           </div>
 
           <div className="space-y-2">
@@ -173,6 +213,29 @@ export function AddPaymentDialog({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
+             {/* Remaining Balance Preview */}
+             {selectedCustomer && (() => {
+                const customer = customers.find(c => c.id.toString() === selectedCustomer);
+                if (!customer || customer.balance === undefined) return null;
+
+                const currentBalance = customer.balance;
+                const payAmount = parseFloat(amount) || 0;
+                // Payment adds to the balance (reduces debt)
+                const remainingBalance = currentBalance + payAmount;
+                
+                let colorClass = "text-green-600 font-bold";
+                if (remainingBalance < 0) colorClass = "text-red-600 font-bold";
+                else if (remainingBalance > 0) colorClass = "text-yellow-600 font-bold";
+
+                return (
+                    <div className="text-xs text-muted-foreground px-1 flex gap-1">
+                        <span>الرصيد بعد السداد:</span>
+                        <span className={colorClass}>
+                             {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(remainingBalance)}
+                        </span>
+                    </div>
+                );
+            })()}
           </div>
 
           <div className="space-y-2">
