@@ -1,12 +1,13 @@
 import { useState } from "react";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Pencil, Check, X } from "lucide-react";
 import type { Company } from "src/shared/types/company.types";
 import type { DailyFinancialRow } from "src/shared/types/financial.types";
 
@@ -14,7 +15,7 @@ interface FinancialTableProps {
   dateRange: { start: Date; end: Date };
   companies: Company[];
   data: DailyFinancialRow[];
-  onCellUpdate: (date: string, field: string, value: number) => void;
+  onRowUpdate: (date: string, updatedData: { income: number; expenses: Record<string, number> }) => void;
   loading?: boolean;
 }
 
@@ -22,11 +23,14 @@ export function FinancialTable({
   dateRange,
   companies,
   data,
-  onCellUpdate,
+  onRowUpdate,
   loading,
 }: FinancialTableProps) {
-  const [editingCell, setEditingCell] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>("");
+  const [editingRow, setEditingRow] = useState<string | null>(null);
+  const [tempData, setTempData] = useState<{
+    income: number;
+    expenses: Record<string, number>;
+  } | null>(null);
 
   // Generate all dates in range
   const generateDateRange = () => {
@@ -66,73 +70,73 @@ export function FinancialTable({
     return `${new Intl.NumberFormat("en-US").format(amount)} ج.م`;
   };
 
-  const handleCellClick = (cellId: string, currentValue: number) => {
-    setEditingCell(cellId);
-    setEditValue(currentValue.toString());
+  const handleEditClick = (row: DailyFinancialRow) => {
+    setEditingRow(row.date);
+    setTempData({
+      income: row.income,
+      expenses: { ...row.expenses },
+    });
   };
 
-  const handleCellBlur = (date: string, field: string) => {
-    // Convert to number, default to 0 if empty or invalid
-    let value = 0;
-    if (editValue && editValue.trim() !== '') {
-      const parsed = parseFloat(editValue);
-      if (!isNaN(parsed) && parsed >= 0) {
-        value = parsed;
-      }
+  const handleCancelClick = () => {
+    setEditingRow(null);
+    setTempData(null);
+  };
+
+  const handleSaveClick = (date: string) => {
+    if (tempData) {
+      onRowUpdate(date, tempData);
+      setEditingRow(null);
+      setTempData(null);
     }
-    
-    // Always save, even if 0 (to clear values)
-    onCellUpdate(date, field, value);
-    setEditingCell(null);
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent,
-    date: string,
-    field: string
+  const handleInputChange = (
+    field: "income" | string,
+    value: string
   ) => {
-    if (e.key === "Enter") {
-      handleCellBlur(date, field);
-    } else if (e.key === "Escape") {
-      setEditingCell(null);
+    if (!tempData) return;
+
+    // Convert to number, allow empty string during typing
+    const numValue = value === "" ? 0 : parseFloat(value);
+    if (isNaN(numValue)) return; // Should be handled by input type, but safety check
+
+    if (field === "income") {
+      setTempData({ ...tempData, income: numValue });
+    } else {
+      setTempData({
+        ...tempData,
+        expenses: { ...tempData.expenses, [field]: numValue },
+      });
     }
   };
 
   const renderEditableCell = (
-    cellId: string,
     value: number,
     date: string,
-    field: string
+    field: "income" | string
   ) => {
-    const isEditing = editingCell === cellId;
+    const isEditing = editingRow === date;
 
-    if (isEditing) {
+    if (isEditing && tempData) {
+      const currentValue = field === "income" 
+        ? tempData.income 
+        : tempData.expenses[field] || 0;
+
       return (
         <input
-          type="text"
-          inputMode="decimal"
-          pattern="[0-9]*\.?[0-9]*"
+          type="number"
+          min="0"
           className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary text-right"
-          value={editValue}
-          onChange={(e) => {
-            // Only allow numbers and decimal point
-            const val = e.target.value;
-            if (val === '' || /^\d*\.?\d*$/.test(val)) {
-              setEditValue(val);
-            }
-          }}
-          onBlur={() => handleCellBlur(date, field)}
-          onKeyDown={(e) => handleKeyDown(e, date, field)}
-          autoFocus
+          value={currentValue || ""}
+          onChange={(e) => handleInputChange(field, e.target.value)}
+          autoFocus={field === "income"}
         />
       );
     }
 
     return (
-      <div
-        className="cursor-pointer hover:bg-muted/50 px-2 py-1 rounded min-h-[2rem] flex items-center justify-start"
-        onClick={() => handleCellClick(cellId, value)}
-      >
+      <div className="px-2 py-1 min-h-[2rem] flex items-center justify-start cursor-default">
         {value}
       </div>
     );
@@ -147,10 +151,10 @@ export function FinancialTable({
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden relative">
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
+        <table className="w-full caption-bottom text-sm">
+          <TableHeader className="sticky top-0 bg-background z-30 shadow-sm">
             <TableRow>
               <TableHead className="text-right font-bold w-28">التاريخ</TableHead>
               <TableHead className="text-right font-bold w-32 bg-blue-100 dark:bg-blue-900/50">الإيرادات</TableHead>
@@ -168,6 +172,7 @@ export function FinancialTable({
               <TableHead className="text-right font-bold w-32 bg-green-100 dark:bg-green-900/50">
                 صافي الربح
               </TableHead>
+              <TableHead className="text-center font-bold w-24 sticky left-0 bg-background z-20">إجراءات</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -180,14 +185,22 @@ export function FinancialTable({
                 netProfit: 0,
               };
 
+              const isEditing = editingRow === date;
+
               return (
-                <TableRow key={date}>
+                <TableRow 
+                  key={date} 
+                  className={`group transition-all duration-200 ${
+                    isEditing 
+                      ? "bg-background shadow-2xl ring-2 ring-primary z-20 relative" 
+                      : "hover:bg-muted/50"
+                  }`}
+                >
                   <TableCell className="font-medium text-right">
                     {formatDate(date)}
                   </TableCell>
-                  <TableCell className="text-right bg-blue-50 dark:bg-blue-900/20">
+                  <TableCell className={`text-right ${isEditing ? "" : "bg-blue-50 dark:bg-blue-900/20"}`}>
                     {renderEditableCell(
-                      `${date}-income`,
                       row.income,
                       date,
                       "income"
@@ -196,31 +209,68 @@ export function FinancialTable({
                   {companies.map((company, index) => (
                     <TableCell 
                       key={company.company_id} 
-                      className={`text-right ${index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}`}
+                      className={`text-right ${
+                        !isEditing && index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''
+                      }`}
                     >
                       {renderEditableCell(
-                        `${date}-${company.company_id}`,
                         row.expenses[company.company_id] || 0,
                         date,
                         company.company_id
                       )}
                     </TableCell>
                   ))}
-                  <TableCell className="bg-yellow-50 dark:bg-yellow-900/20 font-medium text-right">
+                  <TableCell className={`font-medium text-right ${isEditing ? "" : "bg-yellow-50 dark:bg-yellow-900/20"}`}>
                     {formatCurrency(row.totalExpenses)}
                   </TableCell>
                   <TableCell
-                    className={`font-bold text-right bg-green-50 dark:bg-green-900/20 ${
+                    className={`font-bold text-right ${
+                      !isEditing ? "bg-green-50 dark:bg-green-900/20" : ""
+                    } ${
                       row.netProfit >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
                     {formatCurrency(row.netProfit)}
                   </TableCell>
+                  <TableCell className={`text-center sticky left-0 z-10 transition-colors ${
+                      isEditing ? "bg-background" : "bg-background/95 backdrop-blur-sm"
+                  }`}>
+                    {isEditing ? (
+                      <div className="flex items-center justify-center gap-1 animate-in fade-in zoom-in duration-200">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100"
+                          onClick={() => handleSaveClick(date)}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
+                          onClick={handleCancelClick}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        onClick={() => handleEditClick(row)}
+                        disabled={editingRow !== null && editingRow !== date}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
-        </Table>
+        </table>
       </div>
     </div>
   );

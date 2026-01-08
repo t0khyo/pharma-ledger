@@ -5,7 +5,9 @@ import {
   IconBuildings,
   IconCreditCard,
   IconUsers,
+  IconHome,
 } from "@tabler/icons-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { NavUser } from "@/components/NavUser";
 import {
@@ -24,38 +26,47 @@ import {
 
 import logoImage from "@/assets/logo.png";
 
-const data = {
-  user: {
-    name: "Sobhy Shaaban",
-    email: "dr.sobhy@example.com",
-    avatar: "/assets/avatar.png",
+const navItems = [
+  {
+    title: "الرئيسية",
+    url: "/",
+    icon: IconHome,
+    roles: ["admin", "employee"],
   },
-  navMain: [
-    {
-      title: "الديون",
-      url: "/debts",
-      icon: IconCreditCard,
-    },
-    {
-      title: "العملاء",
-      url: "/customers",
-      icon: IconUsers,
-    },
-    {
-      title: "التقارير المالية",
-      url: "/reports",
-      icon: IconTrendingUp,
-    },
-    {
-      title: "الشركات",
-      url: "/companies",
-      icon: IconBuildings,
-    },
-  ],
-};
+  {
+    title: "الديون",
+    url: "/debts",
+    icon: IconCreditCard,
+    roles: ["admin", "employee"],
+  },
+  {
+    title: "العملاء",
+    url: "/customers",
+    icon: IconUsers,
+    roles: ["admin", "employee"],
+  },
+  {
+    title: "التقارير المالية",
+    url: "/reports",
+    icon: IconTrendingUp,
+    roles: ["admin"], // Only admins can access
+  },
+  {
+    title: "الشركات",
+    url: "/companies",
+    icon: IconBuildings,
+    roles: ["admin", "employee"],
+  },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
+  const { user } = useAuth();
+
+  // Filter navigation items based on user role
+  const visibleNavItems = navItems.filter((item) =>
+    item.roles.includes(user?.role || "")
+  );
 
   return (
     <Sidebar side="right" collapsible="icon" {...props}>
@@ -81,7 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupLabel>الرئيسية</SidebarGroupLabel>
           <SidebarGroupContent className="flex flex-col gap-2">
             <SidebarMenu>
-              {data.navMain.map((item) => (
+              {visibleNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
@@ -100,7 +111,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+
+        <NavUser
+          user={{
+            name: user?.full_name || "Guest",
+            email: user?.role === "admin" ? "مسؤول" : "موظف",
+            avatar: user?.avatar_path || "/assets/avatar.png",
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   );

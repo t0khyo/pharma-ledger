@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Eye, EyeOff } from "lucide-react";
 import { MonthSelector } from "@/components/financial/MonthSelector";
 import { SummaryCards } from "@/components/financial/SummaryCards";
 import { FinancialTable } from "@/components/financial/FinancialTable";
@@ -20,14 +20,15 @@ export default function FinancialReports() {
   const [financialData, setFinancialData] = useState<DailyFinancialRow[]>([]);
   const [summary, setSummary] = useState<MonthSummary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showSensitive, setShowSensitive] = useState(false);
 
-  // Calculate custom month range (8th to 9th of next month)
+  // Calculate custom month range (9th to 8th of next month)
   const getDateRange = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
 
-    const start = new Date(year, month, 8);
-    const end = new Date(year, month + 1, 9);
+    const start = new Date(year, month, 9);
+    const end = new Date(year, month + 1, 8);
 
     // Format as YYYY-MM-DD using local date to avoid timezone issues
     const formatLocalDate = (d: Date) => {
@@ -91,44 +92,24 @@ export default function FinancialReports() {
     fetchFinancialData();
   }, [selectedDate]);
 
-  // Handle cell update
-  const handleCellUpdate = async (
+  // Handle row update
+  const handleRowUpdate = async (
     date: string,
-    field: string,
-    value: number
+    updatedData: { income: number; expenses: Record<string, number> }
   ) => {
     try {
-      // Get existing data for this date
-      const existingRow = financialData.find((row) => row.date === date);
-
-      // Build the expenses array
+      // Build the expenses array for API
       const expenses: Array<{ company_id: string; amount: number }> = [];
+      Object.entries(updatedData.expenses).forEach(([companyId, amount]) => {
+        if (amount > 0) {
+          expenses.push({ company_id: companyId, amount });
+        }
+      });
 
-      if (field === "income") {
-        // Update income, keep existing expenses
-        companies.forEach((company) => {
-          const amount = existingRow?.expenses[company.company_id] || 0;
-          if (amount > 0) {
-            expenses.push({ company_id: company.company_id, amount });
-          }
-        });
-      } else {
-        // Update expense for a specific company
-        companies.forEach((company) => {
-          let amount = existingRow?.expenses[company.company_id] || 0;
-          if (company.company_id === field) {
-            amount = value;
-          }
-          if (amount > 0) {
-            expenses.push({ company_id: company.company_id, amount });
-          }
-        });
-      }
-
-      // Upsert entry
+      // Upsert entry with all data
       const updatedRow = await financialService.upsertEntry({
         date,
-        income: field === "income" ? value : existingRow?.income || 0,
+        income: updatedData.income,
         expenses,
       });
 
@@ -154,7 +135,7 @@ export default function FinancialReports() {
       );
       setSummary(summaryData);
 
-      toast.success("تم حفظ البيانات");
+      toast.success("تم حفظ البيانات بنجاح");
     } catch (error) {
       toast.error("فشل في حفظ البيانات");
       console.error(error);
@@ -249,11 +230,25 @@ export default function FinancialReports() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">التقارير المالية</h1>
-        <p className="text-muted-foreground">
-          سجل يومي للإيرادات والمصروفات مع الشركات
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">التقارير المالية</h1>
+          <p className="text-muted-foreground">
+            سجل يومي للإيرادات والمصروفات مع الشركات
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setShowSensitive(!showSensitive)}
+          title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
+        >
+          {showSensitive ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </Button>
       </div>
 
       <MonthSelector
@@ -261,7 +256,11 @@ export default function FinancialReports() {
         onMonthChange={setSelectedDate}
       />
 
-      <SummaryCards summary={summary} loading={loading} />
+      <SummaryCards
+        summary={summary}
+        loading={loading}
+        showValues={showSensitive}
+      />
 
       <div className="flex justify-end">
         <Button onClick={handleExport} variant="outline" className="gap-2">
@@ -274,7 +273,7 @@ export default function FinancialReports() {
         dateRange={dateRange}
         companies={companies}
         data={financialData}
-        onCellUpdate={handleCellUpdate}
+        onRowUpdate={handleRowUpdate}
         loading={loading}
       />
     </div>

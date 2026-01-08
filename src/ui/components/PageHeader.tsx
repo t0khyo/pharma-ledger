@@ -11,11 +11,12 @@ const pageTitles: Record<string, string> = {
   "/companies": "الشركات",
   "/settings": "الإعدادات",
   "/search": "البحث",
+  "/profile": "الملف الشخصي",
 };
 
 export function PageHeader() {
   const location = useLocation();
-  const pageTitle = pageTitles[location.pathname] || "الصفحة";
+  const pageTitle = pageTitles[location.pathname] || "";
 
   return (
     <header className="flex h-[var(--header-height)] shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-[var(--header-height)]">

@@ -16,9 +16,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DataTable } from "@/components/companies/DataTable";
-import { columns } from "@/components//companies/Columns";
+import { columns } from "@/components/companies/Columns";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Companies() {
+  const { hasRole } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,6 +32,8 @@ export default function Companies() {
     open: false,
     company: null,
   });
+
+  const isAdmin = hasRole("admin");
 
   useEffect(() => {
     fetchCompanies();
@@ -72,6 +76,10 @@ export default function Companies() {
     }
   };
 
+  const tableColumns = isAdmin
+    ? columns
+    : columns.filter((col) => col.id !== "actions");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -79,20 +87,22 @@ export default function Companies() {
           <h1 className="text-3xl font-bold">إدارة الشركات</h1>
           <p className="text-muted-foreground">إدارة شركات الأدوية والموردين</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة شركة جديدة
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="w-4 h-4 ml-2" />
+            إضافة شركة جديدة
+          </Button>
+        )}
       </div>
 
       {loading ? (
         <div className="text-center py-8">جاري التحميل...</div>
       ) : (
         <DataTable
-          columns={columns}
+          columns={tableColumns}
           data={companies}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={isAdmin ? handleEdit : undefined}
+          onDelete={isAdmin ? handleDelete : undefined}
         />
       )}
 

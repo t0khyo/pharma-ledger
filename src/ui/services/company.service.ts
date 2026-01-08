@@ -16,9 +16,7 @@ export class CompanyService {
   }
 
   async getAll() {
-    console.log("try fetch all companies");
     const response = await window.api.company.getAll();
-    console.log("fetched all companies: ", response);
 
     if (!response.success) {
       throw new Error(response.error || "Failed to get companies");
