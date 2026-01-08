@@ -1,5 +1,5 @@
 export type TransactionType = 'debt' | 'payment';
-export type PaymentMethod = 'cash' | 'e-wallet' | 'instapay';
+export type PaymentMethod = 'cash' | 'e-wallet' | 'instapay' | 'bank_transfer';
 
 export interface TransactionItem {
   id: number;
@@ -44,4 +44,12 @@ export interface TransactionFilters {
   endDate?: string;
   customerId?: number;
   query?: string; // Search by customer name
+}
+
+export interface DashboardStats {
+    unpaidDebts: number;
+    totalCustomers: number;
+    monthlyIncome: number;
+    totalCompanies: number;
+    recentTransactions: Transaction[];
 }

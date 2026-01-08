@@ -36,6 +36,7 @@ export default function CustomerDetails() {
   const [stats, setStats] = useState<TransactionStats>({
     totalDebts: 0,
     totalPayments: 0,
+    unpaidDebts: 0,
     netBalance: 0,
   });
   const [loading, setLoading] = useState(true);

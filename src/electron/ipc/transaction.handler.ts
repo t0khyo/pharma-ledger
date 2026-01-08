@@ -61,6 +61,19 @@ export function registerTransactionHandlers() {
       }
     }
   );
+
+  ipcMain.handle(
+    "dashboard:getStats",
+    async (_event): Promise<ApiResponse<any>> => {
+      try {
+        const stats = TransactionService.getDashboardStats();
+        return { success: true, data: stats };
+      } catch (error) {
+        console.error("Get dashboard stats error:", error);
+        return { success: false, error: "فشل جلب إحصائيات اللوحة الرئيسية" };
+      }
+    }
+  );
   
   console.log("Transaction handlers registered");
 }

@@ -93,5 +93,6 @@ contextBridge.exposeInMainWorld("api", {
     getAll: (filters: any) => ipcRenderer.invoke("transaction:getAll", filters),
     delete: (id: number) => ipcRenderer.invoke("transaction:delete", id),
     getStats: (filters: any) => ipcRenderer.invoke("transaction:getStats", filters),
+    getDashboardStats: () => ipcRenderer.invoke("dashboard:getStats"),
   },
 });

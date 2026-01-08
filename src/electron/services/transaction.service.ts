@@ -239,4 +239,80 @@ export class TransactionService {
       netBalance: totalPayments - totalDebts
     };
   }
+
+  /**
+   * Get dashboard stats
+   */
+  static getDashboardStats(): any {
+    const db = getDatabaseConnection();
+
+    // 1. Unpaid Debts (Sum of negative customer balances)
+    let unpaidDebtsQuery = `
+        SELECT 
+            SUM(CASE 
+                WHEN balance < 0 THEN ABS(balance) 
+                ELSE 0 
+            END) as unpaidDebts
+        FROM (
+            SELECT 
+                SUM(CASE 
+                    WHEN t.type = 'payment' THEN t.amount 
+                    WHEN t.type = 'debt' THEN -t.amount 
+                    ELSE 0 
+                END) as balance
+            FROM transactions t
+            WHERE t.is_deleted = 0
+            GROUP BY t.customer_id
+        ) as customer_balances
+    `;
+    const unpaidResult = db.prepare(unpaidDebtsQuery).get() as any;
+    const unpaidDebts = unpaidResult?.unpaidDebts || 0;
+
+    // 2. Total Customers
+    const customersResult = db.prepare("SELECT COUNT(*) as count FROM customers").get() as { count: number };
+    const totalCustomers = customersResult.count || 0;
+
+    // 3. Monthly Income (Payments in current month)
+    const incomeResult = db.prepare(`
+        SELECT SUM(amount) as total 
+        FROM transactions 
+        WHERE type = 'payment' 
+        AND is_deleted = 0 
+        AND date(date) >= date('now', 'start of month')
+    `).get() as { total: number };
+    const monthlyIncome = incomeResult.total || 0;
+
+    // 4. Total Companies
+    const companiesResult = db.prepare("SELECT COUNT(*) as count FROM company").get() as { count: number };
+    const totalCompanies = companiesResult.count || 0;
+
+    // 5. Recent Transactions
+    const recentQuery = `
+      SELECT t.*, c.name as customer_name 
+      FROM transactions t
+      JOIN customers c ON t.customer_id = c.id
+      WHERE t.is_deleted = 0
+      ORDER BY t.date DESC, t.created_at DESC
+      LIMIT 5
+    `;
+    const recent = db.prepare(recentQuery).all() as any[];
+
+    // Fetch items for these transactions
+    if (recent.length > 0) {
+        const ids = recent.map(t => t.id).join(",");
+        const items = db.prepare(`SELECT * FROM transaction_items WHERE transaction_id IN (${ids})`).all() as any[];
+        
+        recent.forEach(t => {
+            t.items = items.filter(i => i.transaction_id === t.id);
+        });
+    }
+
+    return {
+        unpaidDebts,
+        totalCustomers,
+        monthlyIncome,
+        totalCompanies,
+        recentTransactions: recent
+    };
+  }
 }
