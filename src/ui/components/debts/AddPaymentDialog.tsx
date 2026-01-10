@@ -247,7 +247,7 @@ export function AddPaymentDialog({
               <SelectContent>
                 <SelectItem value="cash">نقدي (Cash)</SelectItem>
                 <SelectItem value="e-wallet">محفظة إلكترونية</SelectItem>
-                <SelectItem value="instapay">InstaPay</SelectItem>
+                <SelectItem value="instapay">انستا باي</SelectItem>
               </SelectContent>
             </Select>
           </div>

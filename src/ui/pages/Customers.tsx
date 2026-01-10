@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,6 +36,8 @@ export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<CustomerInput>({ name: "", phone: "", notes: "" });
@@ -43,12 +45,12 @@ export default function Customers() {
 
   useEffect(() => {
     loadCustomers();
-  }, [search]);
+  }, [search, sortBy, sortOrder]);
 
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const result = await window.api.customers.getAll(search);
+      const result = await window.api.customers.getAll({ search, sortBy, sortOrder });
       if (result.success && result.data) {
         setCustomers(result.data);
       } else {
@@ -115,7 +117,8 @@ export default function Customers() {
         setIsDialogOpen(false);
         loadCustomers();
       } else {
-        toast.error(result.error || "فشل في حفظ البيانات");
+        // Show specific error from backend if available
+        toast.error(result.error ? `فشل في حفظ البيانات: ${result.error}` : "فشل في حفظ البيانات");
       }
     } catch (error) {
       console.error(error);
@@ -123,6 +126,22 @@ export default function Customers() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(column);
+      setSortOrder("ASC"); // Default to ASC when switching columns
+    }
+  };
+
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortBy !== column) return <ArrowUpDown className="w-3 h-3 text-muted-foreground/50 ml-1" />;
+    return sortOrder === "ASC" 
+      ? <ArrowUp className="w-3 h-3 text-primary ml-1" />
+      : <ArrowDown className="w-3 h-3 text-primary ml-1" />;
   };
 
   return (
@@ -155,9 +174,25 @@ export default function Customers() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[50px]">#</TableHead>
-              <TableHead>اسم العميل</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center">
+                  اسم العميل
+                  <SortIcon column="name" />
+                </div>
+              </TableHead>
               <TableHead>رقم الهاتف</TableHead>
-              <TableHead>الرصيد</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleSort('balance')}
+              >
+                <div className="flex items-center">
+                  الرصيد
+                  <SortIcon column="balance" />
+                </div>
+              </TableHead>
               <TableHead>ملاحظات</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>

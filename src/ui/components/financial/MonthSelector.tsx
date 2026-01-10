@@ -28,9 +28,9 @@ export function MonthSelector({
   const currentMonth = selectedDate.getMonth();
   const currentYear = selectedDate.getFullYear();
 
-  // Calculate custom month range (8th to 9th of next month)
-  const startDate = new Date(currentYear, currentMonth, 8);
-  const endDate = new Date(currentYear, currentMonth + 1, 9);
+  // Calculate custom month range (9th to 8th of next month)
+  const startDate = new Date(currentYear, currentMonth, 9);
+  const endDate = new Date(currentYear, currentMonth + 1, 8);
 
   const handlePrevMonth = () => {
     const newDate = new Date(currentYear, currentMonth - 1, 1);

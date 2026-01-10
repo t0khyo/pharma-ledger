@@ -6,6 +6,7 @@ import { createSettingsTable } from "./004_create_settings_table.js";
 import { createCustomersTable } from "./005_create_customers_table.js";
 import { addAvatarToUsers } from "./006_add_avatar_to_users.js";
 import { createTransactionsTable } from "./007_create_transactions_table.js";
+import { addNormalizedNameToCustomers } from "./008_add_normalized_name_to_customers.js";
 
 export function initDb() {
   // Get the shared database connection
@@ -19,5 +20,6 @@ export function initDb() {
   createCustomersTable(db);
   addAvatarToUsers(db);
   createTransactionsTable(db);
+  addNormalizedNameToCustomers(db);
   console.log("Migrations complete.");
 }

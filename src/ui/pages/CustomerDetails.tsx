@@ -283,7 +283,7 @@ export default function CustomerDetails() {
                     <TableCell className="text-xs whitespace-pre-wrap break-words">
                          {transaction.type === 'debt' && transaction.items && transaction.items.length > 0 
                             ? transaction.items.map(i => i.product_name).join(", ") 
-                            : (transaction.payment_method === 'cash' ? 'نقدي' : transaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة')
+                            : (transaction.payment_method === 'cash' ? 'نقدي' : transaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية')
                          }
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-pre-wrap break-words">

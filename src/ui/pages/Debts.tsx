@@ -208,7 +208,7 @@ export default function Debts() {
               <TableHead className="text-right">التاريخ</TableHead>
               <TableHead className="text-right">النوع</TableHead>
               <TableHead className="text-right">المبلغ</TableHead>
-              <TableHead className="text-right">التفاصيل / المنتجات</TableHead>
+              <TableHead className="text-right">التفاصيل</TableHead>
               <TableHead className="text-right">ملاحظات</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -243,9 +243,16 @@ export default function Debts() {
                     {formatCurrency(transaction.amount)}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">
-                     {transaction.type === 'debt' && transaction.items && transaction.items.length > 0 
-                        ? transaction.items.map(i => i.product_name).join(", ") 
-                        : (transaction.payment_method === 'cash' ? 'نقدي' : transaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة')
+                     {transaction.type === 'debt' 
+                        ? (transaction.items && transaction.items.length > 0 
+                            ? transaction.items.map(i => i.product_name).join(", ") 
+                            : "-")
+                        : (transaction.payment_method 
+                            ? (transaction.payment_method === 'cash' ? 'نقدي' 
+                               : transaction.payment_method === 'instapay' ? 'انستا باي' 
+                               : transaction.payment_method === 'e-wallet' ? 'محفظة إلكترونية' 
+                               : 'تحويل بنكي')
+                            : "-")
                      }
                   </TableCell>
                   <TableCell className="max-w-[150px] truncate text-muted-foreground">
@@ -355,7 +362,8 @@ export default function Debts() {
                              <Label className="mb-2 block">طريقة الدفع</Label>
                              <div className="bg-muted p-2 rounded-md text-sm">
                                 {selectedTransaction.payment_method === 'cash' ? 'نقدي (Cash)' : 
-                                 selectedTransaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية'}
+                                 selectedTransaction.payment_method === 'instapay' ? 'انستا باي' : 
+                                 selectedTransaction.payment_method === 'e-wallet' ? 'محفظة إلكترونية' : 'تحويل بنكي'}
                              </div>
                         </>
                      )}

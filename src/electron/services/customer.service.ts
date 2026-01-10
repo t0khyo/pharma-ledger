@@ -1,9 +1,26 @@
 import { getDatabaseConnection } from "../db/db.js";
 import type { Customer, CustomerInput } from "../../shared/types/customer.types.js";
 
+function normalizeArabicName(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .replace(/[ًٌٍَُِّْ]/g, "") // Remove tashkeel
+    .trim()
+    .toLowerCase(); // For English consistency
+}
+
 export class CustomerService {
-  static getAll(search?: string): Customer[] {
+  static getAll(search?: string, sortBy: string = 'created_at', sortOrder: 'ASC' | 'DESC' = 'DESC'): Customer[] {
     const db = getDatabaseConnection();
+    
+    // Whitelist allowed columns to prevent SQL injection
+    const allowedSortColumns = ['name', 'balance', 'created_at'];
+    const validSortBy = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at';
+    const validSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+
     let query = `
       SELECT c.*, 
         COALESCE(SUM(CASE 
@@ -16,38 +33,63 @@ export class CustomerService {
     let params: any[] = [];
 
     if (search) {
-      query += " WHERE c.name LIKE ? OR c.phone LIKE ?";
-      params.push(`%${search}%`, `%${search}%`);
+      // Normalize the search term as well
+      const normalizedSearch = normalizeArabicName(search);
+      query += " WHERE c.normalized_name LIKE ? OR c.phone LIKE ?";
+      params.push(`%${normalizedSearch}%`, `%${search}%`);
     }
 
-    query += " GROUP BY c.id ORDER BY c.created_at DESC";
+    // Special handling for balance since it's an aggregate
+    const sortClause = validSortBy === 'balance' ? 'balance' : `c.${validSortBy}`;
+    
+    query += ` GROUP BY c.id ORDER BY ${sortClause} ${validSortOrder}`;
 
     return db.prepare(query).all(...params) as Customer[];
   }
 
   static add(customer: CustomerInput): Customer {
     const db = getDatabaseConnection();
-    const result = db
-      .prepare(
-        "INSERT INTO customers (name, phone, notes) VALUES (?, ?, ?)"
-      )
-      .run(customer.name, customer.phone, customer.notes);
+    const trimmedName = customer.name.trim();
+    const normalizedName = normalizeArabicName(trimmedName);
+    
+    try {
+      const result = db
+        .prepare(
+          "INSERT INTO customers (name, phone, notes, normalized_name) VALUES (?, ?, ?, ?)"
+        )
+        .run(trimmedName, customer.phone, customer.notes, normalizedName);
 
-    return {
-      id: Number(result.lastInsertRowid),
-      ...customer,
-    };
+      return {
+        id: Number(result.lastInsertRowid),
+        ...customer,
+      };
+    } catch (error: any) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        throw new Error("يوجد عميل مسجل بهذا الاسم بالفعل");
+      }
+      throw error;
+    }
   }
 
   static update(id: number, customer: CustomerInput): boolean {
     const db = getDatabaseConnection();
-    const result = db
-      .prepare(
-        "UPDATE customers SET name = ?, phone = ?, notes = ? WHERE id = ?"
-      )
-      .run(customer.name, customer.phone, customer.notes, id);
+    const trimmedName = customer.name.trim();
+    const normalizedName = normalizeArabicName(trimmedName);
 
-    return result.changes > 0;
+    try {
+      const result = db
+        .prepare(
+          "UPDATE customers SET name = ?, phone = ?, notes = ?, normalized_name = ? WHERE id = ?"
+        )
+        .run(trimmedName, customer.phone, customer.notes, normalizedName, id);
+
+      return result.changes > 0;
+    } catch (error: any) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        throw new Error("يوجد عميل مسجل بهذا الاسم بالفعل");
+      }
+      throw error;
+    }
   }
 
   static delete(id: number): boolean {

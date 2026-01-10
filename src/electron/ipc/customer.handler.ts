@@ -4,9 +4,10 @@ import type { CustomerInput } from "../../shared/types/customer.types.js";
 import type { ApiResponse } from "../../shared/types/electron.js";
 
 export function registerCustomerHandlers() {
-  ipcMain.handle("customers:get-all", async (_event, search?: string) => {
+  ipcMain.handle("customers:get-all", async (_event, options: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC' } = {}) => {
     try {
-      const customers = CustomerService.getAll(search);
+      const { search, sortBy, sortOrder } = options;
+      const customers = CustomerService.getAll(search, sortBy, sortOrder);
       return { success: true, data: customers };
     } catch (error) {
       console.error("Error fetching customers:", error);
@@ -18,9 +19,9 @@ export function registerCustomerHandlers() {
     try {
       const newCustomer = CustomerService.add(customer);
       return { success: true, data: newCustomer };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding customer:", error);
-      return { success: false, error: "فشل في إضافة العميل" };
+      return { success: false, error: error.message || "فشل في إضافة العميل" };
     }
   });
 
@@ -32,9 +33,9 @@ export function registerCustomerHandlers() {
       } else {
         return { success: false, error: "المستخدم غير موجود" };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating customer:", error);
-      return { success: false, error: "فشل في تحديث بيانات العميل" };
+      return { success: false, error: error.message || "فشل في تحديث بيانات العميل" };
     }
   });
 
