@@ -69,7 +69,11 @@ export interface TransactionApi {
 }
 
 export interface CustomersApi {
+<<<<<<< HEAD
   getAll: (options?: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC' }) => Promise<ApiResponse<Customer[]>>;
+=======
+  getAll: (search?: string) => Promise<ApiResponse<Customer[]>>;
+>>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
   add: (customer: CustomerInput) => Promise<ApiResponse<Customer>>;
   update: (id: number, customer: CustomerInput) => Promise<ApiResponse<void>>;
   delete: (id: number) => Promise<ApiResponse<void>>;

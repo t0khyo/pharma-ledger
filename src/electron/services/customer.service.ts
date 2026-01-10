@@ -1,6 +1,7 @@
 import { getDatabaseConnection } from "../db/db.js";
 import type { Customer, CustomerInput } from "../../shared/types/customer.types.js";
 
+<<<<<<< HEAD
 function normalizeArabicName(text: string): string {
   if (!text) return "";
   return text
@@ -21,6 +22,11 @@ export class CustomerService {
     const validSortBy = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at';
     const validSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
 
+=======
+export class CustomerService {
+  static getAll(search?: string): Customer[] {
+    const db = getDatabaseConnection();
+>>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
     let query = `
       SELECT c.*, 
         COALESCE(SUM(CASE 
@@ -33,6 +39,7 @@ export class CustomerService {
     let params: any[] = [];
 
     if (search) {
+<<<<<<< HEAD
       // Normalize the search term as well
       const normalizedSearch = normalizeArabicName(search);
       query += " WHERE c.normalized_name LIKE ? OR c.phone LIKE ?";
@@ -43,12 +50,20 @@ export class CustomerService {
     const sortClause = validSortBy === 'balance' ? 'balance' : `c.${validSortBy}`;
     
     query += ` GROUP BY c.id ORDER BY ${sortClause} ${validSortOrder}`;
+=======
+      query += " WHERE c.name LIKE ? OR c.phone LIKE ?";
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    query += " GROUP BY c.id ORDER BY c.created_at DESC";
+>>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
 
     return db.prepare(query).all(...params) as Customer[];
   }
 
   static add(customer: CustomerInput): Customer {
     const db = getDatabaseConnection();
+<<<<<<< HEAD
     const trimmedName = customer.name.trim();
     const normalizedName = normalizeArabicName(trimmedName);
     
@@ -69,10 +84,23 @@ export class CustomerService {
       }
       throw error;
     }
+=======
+    const result = db
+      .prepare(
+        "INSERT INTO customers (name, phone, notes) VALUES (?, ?, ?)"
+      )
+      .run(customer.name, customer.phone, customer.notes);
+
+    return {
+      id: Number(result.lastInsertRowid),
+      ...customer,
+    };
+>>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
   }
 
   static update(id: number, customer: CustomerInput): boolean {
     const db = getDatabaseConnection();
+<<<<<<< HEAD
     const trimmedName = customer.name.trim();
     const normalizedName = normalizeArabicName(trimmedName);
 
@@ -90,6 +118,15 @@ export class CustomerService {
       }
       throw error;
     }
+=======
+    const result = db
+      .prepare(
+        "UPDATE customers SET name = ?, phone = ?, notes = ? WHERE id = ?"
+      )
+      .run(customer.name, customer.phone, customer.notes, id);
+
+    return result.changes > 0;
+>>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
   }
 
   static delete(id: number): boolean {
