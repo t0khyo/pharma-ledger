@@ -35,6 +35,7 @@ import type { Customer } from "src/shared/types/customer.types";
 import type { Transaction, TransactionStats } from "src/shared/types/transaction.types";
 import { AddPaymentDialog } from "@/components/debts/AddPaymentDialog";
 import { formatCurrency } from "@/utils/formatters";
+import logoImage from "@/assets/logo.png";
 
 export default function CustomerDetails() {
   const { id } = useParams();
@@ -208,7 +209,7 @@ export default function CustomerDetails() {
           {/* Left Side: Logo */}
           <div className="flex-shrink-0">
             <img 
-              src="/src/ui/assets/logo.png" 
+              src={logoImage} 
               alt="Pharmacy Logo" 
               className="w-32 h-32"
             />
@@ -364,7 +365,7 @@ export default function CustomerDetails() {
                 </div>
                 <div className="flex-shrink-0">
                   <img 
-                    src="/src/ui/assets/logo.png" 
+                    src={logoImage} 
                     alt="Pharmacy Logo" 
                     className="w-32 h-32"
                   />

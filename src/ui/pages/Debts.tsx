@@ -29,6 +29,7 @@ import {
   IconSearch,
   IconTrash,
   IconEye,
+  IconEyeOff,
   IconDotsVertical,
   IconArrowUpRight,
   IconArrowDownLeft,
@@ -53,6 +54,7 @@ export default function Debts() {
   });
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSensitive, setShowSensitive] = useState(false);
 
 
   // Dialog states
@@ -122,6 +124,26 @@ export default function Debts() {
 
   return (
     <div className="space-y-6">
+      {/* Header with Hide Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">سجل الديون</h1>
+          <p className="text-muted-foreground">إدارة ديون وتسديدات العملاء</p>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setShowSensitive(!showSensitive)}
+          title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
+        >
+          {showSensitive ? (
+            <IconEyeOff className="h-4 w-4" />
+          ) : (
+            <IconEye className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -131,7 +153,13 @@ export default function Debts() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {formatCurrency(stats.totalDebts)}
+              {showSensitive ? (
+                formatCurrency(stats.totalDebts)
+              ) : (
+                <span className="blur-md select-none bg-muted/50 rounded px-2">
+                  ******
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -142,7 +170,13 @@ export default function Debts() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(stats.totalPayments)}
+              {showSensitive ? (
+                formatCurrency(stats.totalPayments)
+              ) : (
+                <span className="blur-md select-none bg-muted/50 rounded px-2">
+                  ******
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -153,7 +187,13 @@ export default function Debts() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : stats.netBalance > 0 ? "text-yellow-600" : "text-green-600"}`}>
-              {formatCurrency(stats.netBalance)}
+              {showSensitive ? (
+                formatCurrency(stats.netBalance)
+              ) : (
+                <span className="blur-md select-none bg-muted/50 rounded px-2">
+                  ******
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -165,7 +205,13 @@ export default function Debts() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {formatCurrency(stats.unpaidDebts)}
+              {showSensitive ? (
+                formatCurrency(stats.unpaidDebts)
+              ) : (
+                <span className="blur-md select-none bg-muted/50 rounded px-2">
+                  ******
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
