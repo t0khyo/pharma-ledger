@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { companyService } from "@/services/company.service";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -98,54 +98,53 @@ export default function Home() {
   }
 
   return (
-    <div className="px-4 lg:px-6 space-y-6">
-      {/* Welcome Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            مرحباً، {user?.full_name || "بالكريم"}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            نظرة عامة على نشاط دفتر المحاسبة
-          </p>
-        </div>
+    <div className="space-y-4">
+      {/* Welcome Section - More Compact */}
+      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 p-4 border border-border/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">
+              مرحباً، {user?.full_name || "بالكريم"} 👋
+            </h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              نظرة عامة على نشاط دفتر المحاسبة
+            </p>
+          </div>
 
-        <div className="flex gap-2">
           {hasRole("admin") && (
             <Button
               variant="outline"
               size="icon"
               onClick={() => setShowSensitive(!showSensitive)}
               title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
+              className="h-8 w-8 rounded-lg"
             >
               {showSensitive ? (
-                <IconEyeOff className="h-4 w-4" />
+                <IconEyeOff className="h-3.5 w-3.5" />
               ) : (
-                <IconEye className="h-4 w-4" />
+                <IconEye className="h-3.5 w-3.5" />
               )}
             </Button>
           )}
-          <Button onClick={() => navigate("/financial-reports")}>
-            <IconTrendingUp className="ml-2 h-4 w-4" />
-            تقرير جديد
-          </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid with Enhanced Cards */}
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         {visibleStats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+          <Card key={stat.title} className="border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <div className={`p-1 rounded-md bg-muted/50`}>
+                <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="pb-2">
+              <div className="text-xl font-bold">
                 {stat.sensitive && !showSensitive ? (
-                  <span className="blur-md select-none bg-muted/50 rounded px-2">
+                  <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">
                     ******
                   </span>
                 ) : (
@@ -157,23 +156,144 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Recent Activities */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-2 md:col-span-2 lg:col-span-1">
-          <CardHeader>
-            <CardTitle>النشاط الأخير</CardTitle>
-            <CardDescription>آخر 5 عمليات تم تسجيلها</CardDescription>
+      {/* Main Content Grid */}
+      <div className="grid gap-3 lg:grid-cols-3">
+        {/* Donut Chart Section - Takes 1 column */}
+        {hasRole("admin") && stats && (
+          <Card className="border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">التوزيع المالي</CardTitle>
+              <CardDescription className="text-xs">نسبة الديون والمدفوعات</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-2">
+              {(() => {
+                const total = stats.monthlyIncome + stats.unpaidDebts;
+                const paidPercentage = total > 0 ? (stats.monthlyIncome / total) * 100 : 0;
+                const debtPercentage = total > 0 ? (stats.unpaidDebts / total) * 100 : 0;
+                
+                // SVG donut chart calculations
+                const size = 140;
+                const strokeWidth = 20;
+                const radius = (size - strokeWidth) / 2;
+                const circumference = 2 * Math.PI * radius;
+                
+                return (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative" style={{ width: size, height: size }}>
+                      <svg width={size} height={size} className="transform -rotate-90">
+                        {/* Background circle */}
+                        <circle
+                          cx={size / 2}
+                          cy={size / 2}
+                          r={radius}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={strokeWidth}
+                          className="text-muted/10"
+                        />
+                        
+                        {/* Emerald segment (paid) */}
+                        {paidPercentage > 0 && (
+                          <circle
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={radius}
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={`${(paidPercentage / 100) * circumference} ${circumference}`}
+                            strokeDashoffset={0}
+                            className="transition-all duration-500"
+                          />
+                        )}
+                        
+                        {/* Rose segment (debt) */}
+                        {debtPercentage > 0 && (
+                          <circle
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={radius}
+                            fill="none"
+                            stroke="#f43f5e"
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={`${(debtPercentage / 100) * circumference} ${circumference}`}
+                            strokeDashoffset={-(paidPercentage / 100) * circumference}
+                            className="transition-all duration-500"
+                          />
+                        )}
+                      </svg>
+                      {/* Center text */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <p className="text-2xl font-bold">
+                          {Math.round(paidPercentage)}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">مدفوع</p>
+                      </div>
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="w-full space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                          <span className="text-muted-foreground">مدفوع</span>
+                        </div>
+                        <span className="font-semibold text-emerald-600">
+                          {showSensitive ? formatCurrency(stats.monthlyIncome) : '***'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                          <span className="text-muted-foreground">ديون</span>
+                        </div>
+                        <span className="font-semibold text-rose-600">
+                          {showSensitive ? formatCurrency(stats.unpaidDebts) : '***'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Activities - Takes 2 columns */}
+        <Card className="lg:col-span-2 border-border/50">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">النشاط الأخير</CardTitle>
+                <CardDescription className="text-xs">آخر 5 عمليات</CardDescription>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate("/debts")}
+                className="text-xs h-7"
+              >
+                عرض الكل ←
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="pb-2">
+            <div className="space-y-1.5">
               {stats?.recentTransactions && stats.recentTransactions.length > 0 ? (
                 stats.recentTransactions.map((activity, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between border-b pb-3 last:border-0"
+                    className="flex items-start gap-2.5 p-2 rounded-md hover:bg-muted/50 transition-colors"
                   >
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">{activity.customer_name}</p>
+                    <div className={`p-1 rounded-md ${activity.type === 'debt' ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                      {activity.type === 'debt' ? (
+                        <IconCreditCard className="h-3 w-3 text-red-500" />
+                      ) : (
+                        <IconTrendingUp className="h-3 w-3 text-green-500" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold">{activity.customer_name}</p>
                       <p className="text-xs text-muted-foreground line-clamp-1">
                         {activity.type === 'debt' ? (
                             activity.items && activity.items.length > 0 
@@ -188,63 +308,119 @@ export default function Home() {
                       </p>
                     </div>
                     <div className="text-left">
-                      <p className={`text-sm font-bold ${activity.type === 'debt' ? 'text-red-500' : 'text-green-500'}`}>
+                      <p className={`text-xs font-bold ${activity.type === 'debt' ? 'text-red-500' : 'text-green-500'}`}>
                         {formatCurrency(activity.amount)}
                       </p>
                       <p className="text-xs text-muted-foreground dir-ltr">
-                         {format(new Date(activity.date), "dd MMMM, hh:mm a", { locale: ar })}
+                        {format(new Date(activity.date), "dd/MM hh:mm", { locale: ar })}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="text-center text-muted-foreground py-4">
-                    لا توجد عمليات مسجلة حديثاً
+                  <IconLoader className="h-5 w-5 mx-auto mb-1 opacity-50" />
+                  <p className="text-xs">لا توجد عمليات</p>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
-
-        {/* Quick Actions */}
-        <Card className="col-span-2 md:col-span-2 lg:col-span-1">
-            <CardHeader>
-            <CardTitle>إجراءات سريعة</CardTitle>
-            <CardDescription>العمليات الأكثر استخداماً</CardDescription>
-            </CardHeader>
-            <CardContent>
-            <div className="grid gap-3 grid-cols-2">
-                <Button variant="outline" className="h-24 flex-col gap-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200" onClick={() => navigate("/debts")}>
-                    <IconCreditCard className="h-6 w-6" />
-                    <span className="font-medium">الديون</span>
-                </Button>
-                <Button variant="outline" className="h-24 flex-col gap-2 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200" onClick={() => navigate("/customers")}>
-                    <IconUsers className="h-6 w-6" />
-                    <span className="font-medium">العملاء</span>
-                </Button>
-                <Button variant="outline" className="h-24 flex-col gap-2 hover:bg-green-50 hover:text-green-600 hover:border-green-200" onClick={() => navigate("/financial-reports")}>
-                    <IconTrendingUp className="h-6 w-6" />
-                    <span className="font-medium">التقارير</span>
-                </Button>
-                <Button
-                onClick={() => companyService.getAll()} // This was a placeholder in original code, likely need to open Add Company dialog or navigate. Just navigating to Companies list for now? The original code fetched companies. Assuming it was a logical placeholder.
-                // Let's make it navigate to companies assuming such route exists or show message.
-                // Actually the user has "Companies" in the sidebar? Let's check. 
-                // There is no Companies page explicit in conversation imports but company.service exists.
-                // I will hook it to simple alert or nothing for now if route unknown, OR better keep it same but make it useful: 
-                // Since I saw `Companies` page is likely needed. Wait, file list showed `ui/components/companies`. There is likely a /companies route.
-                // Checking previous context: `ui/components/companies/Columns.tsx`.
-                // I'll navigate to "/companies".
-                variant="outline"
-                className="h-24 flex-col gap-2 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200"
-                >
-                <IconBuildings className="h-6 w-6" />
-                <span className="font-medium">الشركات</span>
-                </Button>
-            </div>
-            </CardContent>
-        </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card className="border-border/50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">إجراءات سريعة</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 hover:border-red-300 dark:hover:border-red-800 transition-all rounded-lg group" 
+              onClick={() => navigate("/debts")}
+            >
+              <div className="p-1.5 rounded-md bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+                <IconCreditCard className="h-4 w-4" />
+              </div>
+              <span className="font-medium text-xs">الديون</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 hover:border-blue-300 dark:hover:border-blue-800 transition-all rounded-lg group" 
+              onClick={() => navigate("/customers")}
+            >
+              <div className="p-1.5 rounded-md bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
+                <IconUsers className="h-4 w-4" />
+              </div>
+              <span className="font-medium text-xs">العملاء</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-1.5 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 hover:border-green-300 dark:hover:border-green-800 transition-all rounded-lg group" 
+              onClick={() => navigate("/reports")}
+            >
+              <div className="p-1.5 rounded-md bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+                <IconTrendingUp className="h-4 w-4" />
+              </div>
+              <span className="font-medium text-xs">التقارير</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 flex-col gap-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 hover:border-purple-300 dark:hover:border-purple-800 transition-all rounded-lg group"
+              onClick={() => navigate("/companies")}
+            >
+              <div className="p-1.5 rounded-md bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                <IconBuildings className="h-4 w-4" />
+              </div>
+              <span className="font-medium text-xs">الشركات</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Financial Overview - Compact */}
+      {hasRole("admin") && stats && (
+        <Card className="border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">ملخص مالي</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-2">
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">الإيرادات</p>
+                <p className="text-lg font-bold text-green-600">
+                  {showSensitive ? formatCurrency(stats.monthlyIncome) : '******'}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">الديون</p>
+                <p className="text-lg font-bold text-red-600">
+                  {showSensitive ? formatCurrency(stats.unpaidDebts) : '******'}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">العملاء</p>
+                <p className="text-lg font-bold text-blue-600">
+                  {formatNumber(stats.totalCustomers)}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">الشركات</p>
+                <p className="text-lg font-bold text-purple-600">
+                  {formatNumber(stats.totalCompanies)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
