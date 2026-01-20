@@ -14,7 +14,7 @@ export function Layout() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="md:!m-4">{/* Increased margin from 2 to 4 for more gap from edges */}
         <PageHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col">
