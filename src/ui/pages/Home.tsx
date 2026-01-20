@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import type { DashboardStats } from "src/shared/types/transaction.types";
 import { toast } from "sonner";
+import { formatNumber, formatCurrency } from "@/utils/formatters";
 
 export default function Home() {
   const { user, hasRole } = useAuth();
@@ -50,19 +51,10 @@ export default function Home() {
     }
   };
 
-  const formatNumber = (num: number, currency: boolean = false) => {
-    const formatted = new Intl.NumberFormat("ar-EG", {
-      style: currency ? "currency" : "decimal",
-      currency: "EGP",
-      maximumFractionDigits: 0,
-    }).format(num);
-    return formatted;
-  };
-
   const statCards = [
     {
       title: "الديون غير المسددة",
-      value: stats ? formatNumber(stats.unpaidDebts, true) : "-",
+      value: stats ? formatCurrency(stats.unpaidDebts) : "-",
       icon: IconCreditCard,
       color: "text-red-500",
       adminOnly: true,
@@ -77,7 +69,7 @@ export default function Home() {
     },
     {
       title: "إيرادات الشهر",
-      value: stats ? formatNumber(stats.monthlyIncome, true) : "-",
+      value: stats ? formatCurrency(stats.monthlyIncome) : "-",
       icon: IconTrendingUp,
       color: "text-green-500",
       adminOnly: true,
@@ -197,7 +189,7 @@ export default function Home() {
                     </div>
                     <div className="text-left">
                       <p className={`text-sm font-bold ${activity.type === 'debt' ? 'text-red-500' : 'text-green-500'}`}>
-                        {formatNumber(activity.amount, true)}
+                        {formatCurrency(activity.amount)}
                       </p>
                       <p className="text-xs text-muted-foreground dir-ltr">
                          {format(new Date(activity.date), "dd MMMM, hh:mm a", { locale: ar })}

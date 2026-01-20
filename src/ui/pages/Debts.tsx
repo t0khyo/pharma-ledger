@@ -41,6 +41,7 @@ import type { Transaction, TransactionStats, TransactionFilters } from "src/shar
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Label } from "@radix-ui/react-dropdown-menu";
+import { formatCurrency } from "@/utils/formatters";
 
 export default function Debts() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -117,12 +118,7 @@ export default function Debts() {
       setShowViewDialog(true);
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ar-EG", {
-      style: "currency",
-      currency: "EGP",
-    }).format(amount);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -208,11 +204,7 @@ export default function Debts() {
               <TableHead className="text-right">التاريخ</TableHead>
               <TableHead className="text-right">النوع</TableHead>
               <TableHead className="text-right">المبلغ</TableHead>
-<<<<<<< HEAD
               <TableHead className="text-right">التفاصيل</TableHead>
-=======
-              <TableHead className="text-right">التفاصيل / المنتجات</TableHead>
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
               <TableHead className="text-right">ملاحظات</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -247,7 +239,6 @@ export default function Debts() {
                     {formatCurrency(transaction.amount)}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">
-<<<<<<< HEAD
                      {transaction.type === 'debt' 
                         ? (transaction.items && transaction.items.length > 0 
                             ? transaction.items.map(i => i.product_name).join(", ") 
@@ -258,11 +249,6 @@ export default function Debts() {
                                : transaction.payment_method === 'e-wallet' ? 'محفظة إلكترونية' 
                                : 'تحويل بنكي')
                             : "-")
-=======
-                     {transaction.type === 'debt' && transaction.items && transaction.items.length > 0 
-                        ? transaction.items.map(i => i.product_name).join(", ") 
-                        : (transaction.payment_method === 'cash' ? 'نقدي' : transaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة')
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
                      }
                   </TableCell>
                   <TableCell className="max-w-[150px] truncate text-muted-foreground">
@@ -372,12 +358,8 @@ export default function Debts() {
                              <Label className="mb-2 block">طريقة الدفع</Label>
                              <div className="bg-muted p-2 rounded-md text-sm">
                                 {selectedTransaction.payment_method === 'cash' ? 'نقدي (Cash)' : 
-<<<<<<< HEAD
                                  selectedTransaction.payment_method === 'instapay' ? 'انستا باي' : 
                                  selectedTransaction.payment_method === 'e-wallet' ? 'محفظة إلكترونية' : 'تحويل بنكي'}
-=======
-                                 selectedTransaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية'}
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
                              </div>
                         </>
                      )}

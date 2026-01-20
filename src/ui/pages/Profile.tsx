@@ -207,7 +207,6 @@ export default function Profile() {
         </Card>
 
         {/* Change Password Card */}
-<<<<<<< HEAD
         {user?.role === "admin" && (
           <Card className="h-fit">
             <CardHeader>
@@ -253,51 +252,6 @@ export default function Profile() {
             </CardContent>
           </Card>
         )}
-=======
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5" />
-              تغيير كلمة المرور
-            </CardTitle>
-            <CardDescription>تعيين كلمة مرور جديدة آمنة لحسابك</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">تأكيد كلمة المرور الجديدة</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className="flex justify-end pt-2">
-                <Button type="submit" variant="outline" disabled={passwordLoading}>
-                  {passwordLoading ? "جاري التحديث..." : (
-                    <>
-                      <Save className="w-4 h-4 ml-2" />
-                      تحديث كلمة المرور
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
       </div>
     </div>
   );

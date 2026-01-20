@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { CreateTransactionInput } from "src/shared/types/transaction.types";
 import type { Customer } from "src/shared/types/customer.types";
+import { formatCurrency } from "@/utils/formatters";
 
 interface AddDebtDialogProps {
   open: boolean;
@@ -170,7 +171,7 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
                     <div className="text-xs text-muted-foreground px-1 flex gap-1">
                         <span>الرصيد الحالي:</span>
                         <span className={colorClass}>
-                             {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(balance)}
+                             {formatCurrency(balance)}
                         </span>
                     </div>
                 );
@@ -234,7 +235,7 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
                     <div className="text-xs text-muted-foreground px-1 flex gap-1">
                         <span>الرصيد بعد الدين:</span>
                         <span className={colorClass}>
-                             {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(predictedBalance)}
+                             {formatCurrency(predictedBalance)}
                         </span>
                     </div>
                 );

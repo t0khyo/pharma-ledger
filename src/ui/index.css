@@ -127,6 +127,11 @@
   }
 
   @media print {
+    /* Reduce page margins */
+    @page {
+      margin: 0.5cm;
+    }
+
     /* Hide sidebar, buttons, and other interactive elements */
     aside, button, nav, input, .no-print, [role="dialog"] {
       display: none !important;

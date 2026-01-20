@@ -45,7 +45,7 @@ export const columns: ColumnDef<Company>[] = [
     header: "تاريخ الإنشاء",
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"));
-      return date.toLocaleDateString("ar-EG");
+      return date.toLocaleDateString("ar-EG-u-nu-latn");
     },
   },
   {

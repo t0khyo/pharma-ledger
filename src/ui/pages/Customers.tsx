@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-=======
-import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye } from "lucide-react";
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,17 +30,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "@/utils/formatters";
 
 export default function Customers() {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-<<<<<<< HEAD
   const [sortBy, setSortBy] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
-=======
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<CustomerInput>({ name: "", phone: "", notes: "" });
@@ -52,20 +46,12 @@ export default function Customers() {
 
   useEffect(() => {
     loadCustomers();
-<<<<<<< HEAD
   }, [search, sortBy, sortOrder]);
-=======
-  }, [search]);
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
 
   const loadCustomers = async () => {
     try {
       setLoading(true);
-<<<<<<< HEAD
       const result = await window.api.customers.getAll({ search, sortBy, sortOrder });
-=======
-      const result = await window.api.customers.getAll(search);
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
       if (result.success && result.data) {
         setCustomers(result.data);
       } else {
@@ -132,12 +118,8 @@ export default function Customers() {
         setIsDialogOpen(false);
         loadCustomers();
       } else {
-<<<<<<< HEAD
         // Show specific error from backend if available
         toast.error(result.error ? `فشل في حفظ البيانات: ${result.error}` : "فشل في حفظ البيانات");
-=======
-        toast.error(result.error || "فشل في حفظ البيانات");
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
       }
     } catch (error) {
       console.error(error);
@@ -147,7 +129,6 @@ export default function Customers() {
     }
   };
 
-<<<<<<< HEAD
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "ASC" ? "DESC" : "ASC");
@@ -163,9 +144,6 @@ export default function Customers() {
       ? <ArrowUp className="w-3 h-3 text-primary ml-1" />
       : <ArrowDown className="w-3 h-3 text-primary ml-1" />;
   };
-
-=======
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -196,7 +174,6 @@ export default function Customers() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[50px]">#</TableHead>
-<<<<<<< HEAD
               <TableHead 
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => handleSort('name')}
@@ -216,11 +193,6 @@ export default function Customers() {
                   <SortIcon column="balance" />
                 </div>
               </TableHead>
-=======
-              <TableHead>اسم العميل</TableHead>
-              <TableHead>رقم الهاتف</TableHead>
-              <TableHead>الرصيد</TableHead>
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
               <TableHead>ملاحظات</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -264,10 +236,7 @@ export default function Customers() {
                       (customer.balance || 0) < 0 ? "text-red-600" : 
                       (customer.balance || 0) > 0 ? "text-yellow-600" : "text-green-600"
                     )}>
-                      {new Intl.NumberFormat("ar-EG", {
-                        style: "currency",
-                        currency: "EGP",
-                      }).format(customer.balance || 0)}
+                      {formatCurrency(customer.balance || 0)}
                     </span>
                   </TableCell>
                   <TableCell>

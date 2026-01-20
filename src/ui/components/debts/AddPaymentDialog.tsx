@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import type { CreateTransactionInput, PaymentMethod } from "src/shared/types/transaction.types";
 import type { Customer } from "src/shared/types/customer.types";
 import { format } from "date-fns";
+import { formatCurrency } from "@/utils/formatters";
 
 
 interface AddPaymentDialogProps {
@@ -182,7 +183,7 @@ export function AddPaymentDialog({
                         <div className="flex gap-2 text-muted-foreground">
                             <span>الرصيد الحالي:</span>
                             <span className={colorClass}>
-                                {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(customer.balance)}
+                                {formatCurrency(customer.balance)}
                             </span>
                         </div>
                         
@@ -231,7 +232,7 @@ export function AddPaymentDialog({
                     <div className="text-xs text-muted-foreground px-1 flex gap-1">
                         <span>الرصيد بعد السداد:</span>
                         <span className={colorClass}>
-                             {new Intl.NumberFormat("ar-EG", { style: "currency", currency: "EGP" }).format(remainingBalance)}
+                             {formatCurrency(remainingBalance)}
                         </span>
                     </div>
                 );
@@ -247,11 +248,7 @@ export function AddPaymentDialog({
               <SelectContent>
                 <SelectItem value="cash">نقدي (Cash)</SelectItem>
                 <SelectItem value="e-wallet">محفظة إلكترونية</SelectItem>
-<<<<<<< HEAD
                 <SelectItem value="instapay">انستا باي</SelectItem>
-=======
-                <SelectItem value="instapay">InstaPay</SelectItem>
->>>>>>> afc0fc1f8bab21bc04b67ba4cd14a39707bb7fb5
               </SelectContent>
             </Select>
           </div>
