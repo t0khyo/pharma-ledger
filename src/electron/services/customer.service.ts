@@ -13,35 +13,52 @@ function normalizeArabicName(text: string): string {
 }
 
 export class CustomerService {
-  static getAll(search?: string, sortBy: string = 'created_at', sortOrder: 'ASC' | 'DESC' = 'DESC'): Customer[] {
+  static getAll(search?: string, sortBy: string = 'created_at', sortOrder: 'ASC' | 'DESC' = 'DESC', lateOnly?: boolean, lateDays: number = 21): Customer[] {
     const db = getDatabaseConnection();
     
     // Whitelist allowed columns to prevent SQL injection
-    const allowedSortColumns = ['name', 'balance', 'created_at'];
+    const allowedSortColumns = ['name', 'balance', 'created_at', 'days_since_activity'];
     const validSortBy = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at';
     const validSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+    
     let query = `
       SELECT c.*, 
         COALESCE(SUM(CASE 
           WHEN t.type = 'payment' THEN t.amount 
           WHEN t.type = 'debt' THEN -t.amount 
-          ELSE 0 END), 0) as balance
+          ELSE 0 END), 0) as balance,
+        MAX(t.date) as last_activity_date,
+        CAST(JULIANDAY('now') - JULIANDAY(COALESCE(MAX(t.date), c.created_at)) AS INTEGER) as days_since_activity
       FROM customers c
       LEFT JOIN transactions t ON c.id = t.customer_id AND t.is_deleted = 0
     `;
     let params: any[] = [];
+    let whereConditions: string[] = [];
 
     if (search) {
       // Normalize the search term as well
       const normalizedSearch = normalizeArabicName(search);
-      query += " WHERE c.normalized_name LIKE ? OR c.phone LIKE ?";
+      whereConditions.push("(c.normalized_name LIKE ? OR c.phone LIKE ?)");
       params.push(`%${normalizedSearch}%`, `%${search}%`);
     }
 
-    // Special handling for balance since it's an aggregate
-    const sortClause = validSortBy === 'balance' ? 'balance' : `c.${validSortBy}`;
+    if (whereConditions.length > 0) {
+      query += " WHERE " + whereConditions.join(" AND ");
+    }
+
+    query += " GROUP BY c.id";
     
-    query += ` GROUP BY c.id ORDER BY ${sortClause} ${validSortOrder}`;
+    // Add HAVING clause for late filter (only customers with balance < 0 and inactive for lateDays)
+    if (lateOnly) {
+      query += ` HAVING balance < 0 AND days_since_activity >= ${lateDays}`;
+    }
+
+    // Special handling for aggregate columns
+    const sortClause = (validSortBy === 'balance' || validSortBy === 'days_since_activity') 
+      ? validSortBy 
+      : `c.${validSortBy}`;
+    
+    query += ` ORDER BY ${sortClause} ${validSortOrder}`;
 
     return db.prepare(query).all(...params) as Customer[];
   }

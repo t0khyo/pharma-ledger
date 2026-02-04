@@ -58,6 +58,7 @@ export interface SettingsApi {
   get: () => Promise<EmailSettings>;
   save: (settings: EmailSettings) => Promise<ApiResponse<void>>;
   testEmail: (settings: TestEmailSettings) => Promise<ApiResponse<void>>;
+  selectBackupFolder: () => Promise<{ success: boolean; path: string }>;
 }
 
 export interface TransactionApi {
@@ -69,7 +70,7 @@ export interface TransactionApi {
 }
 
 export interface CustomersApi {
-  getAll: (options?: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC' }) => Promise<ApiResponse<Customer[]>>;
+  getAll: (options?: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC', lateOnly?: boolean, lateDays?: number }) => Promise<ApiResponse<Customer[]>>;
   add: (customer: CustomerInput) => Promise<ApiResponse<Customer>>;
   update: (id: number, customer: CustomerInput) => Promise<ApiResponse<void>>;
   delete: (id: number) => Promise<ApiResponse<void>>;

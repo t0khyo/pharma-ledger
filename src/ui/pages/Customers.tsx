@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown, Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { Customer, CustomerInput } from "../../shared/types/customer.types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import {
   DropdownMenu,
@@ -43,15 +44,17 @@ export default function Customers() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<CustomerInput>({ name: "", phone: "", notes: "" });
   const [saving, setSaving] = useState(false);
+  const [lateOnly, setLateOnly] = useState(false);
+  const [lateDays, setLateDays] = useState(21);
 
   useEffect(() => {
     loadCustomers();
-  }, [search, sortBy, sortOrder]);
+  }, [search, sortBy, sortOrder, lateOnly, lateDays]);
 
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const result = await window.api.customers.getAll({ search, sortBy, sortOrder });
+      const result = await window.api.customers.getAll({ search, sortBy, sortOrder, lateOnly, lateDays });
       if (result.success && result.data) {
         setCustomers(result.data);
       } else {
@@ -157,7 +160,55 @@ export default function Customers() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
+      {/* Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">إجمالي العملاء</CardTitle>
+            <Users className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {customers.length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">إجمالي الديون</CardTitle>
+            <TrendingUp className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, -(c.balance || 0)), 0))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">إجمالي الأرصدة</CardTitle>
+            <TrendingDown className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, c.balance || 0), 0))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
+            <Wallet className={`h-4 w-4 ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-500" : customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0 ? "text-yellow-500" : "text-green-500"}`} />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-600" : customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0 ? "text-yellow-600" : "text-green-600"}`}>
+              {formatCurrency(Math.abs(customers.reduce((sum, c) => sum + (c.balance || 0), 0)))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex items-center gap-4 bg-card p-4 rounded-lg border shadow-sm flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
@@ -166,6 +217,32 @@ export default function Customers() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+        
+        {/* Late Debts Filter */}
+        <div className="flex items-center gap-3 p-2 rounded-lg border bg-muted/30">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={lateOnly}
+              onChange={(e) => setLateOnly(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <span className="text-sm font-medium">ديون متأخرة فقط</span>
+          </label>
+          {lateOnly && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">أكثر من</span>
+              <Input
+                type="number"
+                min={1}
+                value={lateDays}
+                onChange={(e) => setLateDays(Math.max(1, parseInt(e.target.value) || 21))}
+                className="w-16 h-8 text-center"
+              />
+              <span className="text-sm text-muted-foreground">يوم</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -236,7 +313,12 @@ export default function Customers() {
                       (customer.balance || 0) < 0 ? "text-red-600" : 
                       (customer.balance || 0) > 0 ? "text-yellow-600" : "text-green-600"
                     )}>
-                      {formatCurrency(customer.balance || 0)}
+                      {(customer.balance || 0) < 0 
+                        ? formatCurrency(Math.abs(customer.balance || 0))
+                        : (customer.balance || 0) > 0
+                        ? `- ${formatCurrency(customer.balance || 0)}`
+                        : formatCurrency(0)
+                      }
                     </span>
                   </TableCell>
                   <TableCell>

@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 // Map routes to page titles
 const pageTitles: Record<string, string> = {
@@ -27,6 +28,9 @@ export function PageHeader() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <h1 className="text-base font-medium">{pageTitle}</h1>
+        <div className="mr-auto">
+          <DarkModeToggle />
+        </div>
       </div>
     </header>
   );

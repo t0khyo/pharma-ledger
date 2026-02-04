@@ -99,35 +99,37 @@ export default function Home() {
 
   return (
     <div className="space-y-4">
-      {/* Welcome Section - More Compact */}
-      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 p-4 border border-border/50">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">
-              مرحباً، {user?.full_name || "بالكريم"} 👋
-            </h1>
-            <p className="text-muted-foreground text-sm mt-0.5">
-              نظرة عامة على نشاط دفتر المحاسبة
-            </p>
-          </div>
+      {/* Welcome Section */}
+      <Card className="border-border/50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl font-bold">
+                مرحباً، {user?.full_name || "بالكريم"} 👋
+              </CardTitle>
+              <CardDescription className="mt-1">
+                نظرة عامة على نشاط دفتر المحاسبة
+              </CardDescription>
+            </div>
 
-          {hasRole("admin") && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowSensitive(!showSensitive)}
-              title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
-              className="h-8 w-8 rounded-lg"
-            >
-              {showSensitive ? (
-                <IconEyeOff className="h-3.5 w-3.5" />
-              ) : (
-                <IconEye className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          )}
-        </div>
-      </div>
+            {hasRole("admin") && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowSensitive(!showSensitive)}
+                title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
+                className="h-8 w-8 rounded-lg"
+              >
+                {showSensitive ? (
+                  <IconEyeOff className="h-3.5 w-3.5" />
+                ) : (
+                  <IconEye className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Stats Grid with Enhanced Cards */}
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -165,91 +167,104 @@ export default function Home() {
               <CardTitle className="text-base">التوزيع المالي</CardTitle>
               <CardDescription className="text-xs">نسبة الديون والمدفوعات</CardDescription>
             </CardHeader>
-            <CardContent className="pb-2">
+            <CardContent className="pb-4">
               {(() => {
                 const total = stats.monthlyIncome + stats.unpaidDebts;
                 const paidPercentage = total > 0 ? (stats.monthlyIncome / total) * 100 : 0;
                 const debtPercentage = total > 0 ? (stats.unpaidDebts / total) * 100 : 0;
                 
                 // SVG donut chart calculations
-                const size = 140;
-                const strokeWidth = 20;
+                const size = 180;
+                const strokeWidth = 24;
                 const radius = (size - strokeWidth) / 2;
                 const circumference = 2 * Math.PI * radius;
+                const gapDegrees = 0; // Larger gap between segments
+                const gapPercentage = (gapDegrees / 360) * 100;
                 
                 return (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="relative" style={{ width: size, height: size }}>
-                      <svg width={size} height={size} className="transform -rotate-90">
-                        {/* Background circle */}
-                        <circle
-                          cx={size / 2}
-                          cy={size / 2}
-                          r={radius}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={strokeWidth}
-                          className="text-muted/10"
-                        />
-                        
-                        {/* Emerald segment (paid) */}
-                        {paidPercentage > 0 && (
+                  <div className="flex flex-col items-center gap-6">
+                    {/* Chart Container */}
+                    <div className="relative w-full flex justify-center">
+                      <div className="relative" style={{ width: size, height: size }}>
+                        <svg width={size} height={size} className="transform -rotate-90">
+                          {/* Background circle */}
                           <circle
                             cx={size / 2}
                             cy={size / 2}
                             r={radius}
                             fill="none"
-                            stroke="#10b981"
+                            stroke="currentColor"
                             strokeWidth={strokeWidth}
-                            strokeDasharray={`${(paidPercentage / 100) * circumference} ${circumference}`}
-                            strokeDashoffset={0}
-                            className="transition-all duration-500"
+                            className="text-muted/20"
                           />
-                        )}
-                        
-                        {/* Rose segment (debt) */}
-                        {debtPercentage > 0 && (
-                          <circle
-                            cx={size / 2}
-                            cy={size / 2}
-                            r={radius}
-                            fill="none"
-                            stroke="#f43f5e"
-                            strokeWidth={strokeWidth}
-                            strokeDasharray={`${(debtPercentage / 100) * circumference} ${circumference}`}
-                            strokeDashoffset={-(paidPercentage / 100) * circumference}
-                            className="transition-all duration-500"
-                          />
-                        )}
-                      </svg>
-                      {/* Center text */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <p className="text-2xl font-bold">
-                          {Math.round(paidPercentage)}%
-                        </p>
-                        <p className="text-xs text-muted-foreground">مدفوع</p>
+                          
+                          {/* Green segment (payments) - no glow */}
+                          {paidPercentage > 0 && (
+                            <circle
+                              cx={size / 2}
+                              cy={size / 2}
+                              r={radius}
+                              fill="none"
+                              stroke="#27c68b"
+                              strokeWidth={strokeWidth}
+                              strokeDasharray={`${((paidPercentage - gapPercentage) / 100) * circumference} ${circumference}`}
+                              strokeDashoffset={0}
+                              strokeLinecap="butt"
+                              className="transition-all duration-500"
+                            />
+                          )}
+                          
+                          {/* Pink segment (debts) - no glow */}
+                          {debtPercentage > 0 && (
+                            <circle
+                              cx={size / 2}
+                              cy={size / 2}
+                              r={radius}
+                              fill="none"
+                              stroke="#ee6875"
+                              strokeWidth={strokeWidth}
+                              strokeDasharray={`${((debtPercentage - gapPercentage) / 100) * circumference} ${circumference}`}
+                              strokeDashoffset={-((paidPercentage + gapPercentage) / 100) * circumference}
+                              strokeLinecap="butt"
+                              className="transition-all duration-500"
+                            />
+                          )}
+                        </svg>
+                        {/* Center text - Total */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <p className="text-xs text-muted-foreground mb-1">الإجمالي</p>
+                          <p className="text-xl font-bold">
+                            {showSensitive ? formatCurrency(total) : '***'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Legend */}
-                    <div className="w-full space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                          <span className="text-muted-foreground">مدفوع</span>
+                    {/* Legend - Bottom */}
+                    <div className="w-full grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#27c68b' }}></div>
+                          <span className="text-xs text-muted-foreground">تسديدات</span>
                         </div>
-                        <span className="font-semibold text-emerald-600">
+                        <p className="text-sm font-semibold" style={{ color: '#27c68b' }}>
                           {showSensitive ? formatCurrency(stats.monthlyIncome) : '***'}
-                        </span>
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {Math.round(paidPercentage)}%
+                        </p>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
-                          <span className="text-muted-foreground">ديون</span>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#ee6875' }}></div>
+                          <span className="text-xs text-muted-foreground">ديون</span>
                         </div>
-                        <span className="font-semibold text-rose-600">
+                        <p className="text-sm font-semibold" style={{ color: '#ee6875' }}>
                           {showSensitive ? formatCurrency(stats.unpaidDebts) : '***'}
-                        </span>
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {Math.round(debtPercentage)}%
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -300,10 +315,23 @@ export default function Home() {
                             ? activity.items.map((i: any) => i.product_name).join('، ')
                             : (activity.notes || 'بدون تفاصيل')
                         ) : (
-                            activity.payment_method === 'cash' ? 'نقداً' :
-                            activity.payment_method === 'instapay' ? 'إنستا باي' :
-                            activity.payment_method === 'bank_transfer' ? 'تحويل بنكي' :
-                            (activity.payment_method || activity.notes || 'دفع')
+                            // Payment type - show payment method and notes
+                            (() => {
+                              const methodText = activity.payment_method === 'cash' ? 'نقداً' :
+                                               activity.payment_method === 'instapay' ? 'إنستا باي' :
+                                               activity.payment_method === 'e-wallet' ? 'محفظة إلكترونية' :
+                                               activity.payment_method || '';
+                              
+                              if (methodText && activity.notes) {
+                                return `${methodText} - ${activity.notes}`;
+                              } else if (methodText) {
+                                return methodText;
+                              } else if (activity.notes) {
+                                return activity.notes;
+                              } else {
+                                return 'دفع';
+                              }
+                            })()
                         )}
                       </p>
                     </div>

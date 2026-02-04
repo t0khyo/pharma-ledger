@@ -7,6 +7,7 @@ export interface EmailSettings {
   backup_smtp_user: string;
   backup_smtp_pass: string;
   last_backup_sent_at?: string;
+  local_backup_path?: string;
 }
 
 export interface TestEmailSettings {

@@ -1,4 +1,5 @@
 import cron from "node-cron";
+import { Notification } from "electron";
 import { getDatabaseConnection, getDatabasePath } from "../db/db.js";
 import { EmailService } from "./EmailService.js";
 
@@ -12,15 +13,18 @@ export class BackupScheduler {
     // Check immediately on startup (fallback for missed backups)
     this.checkAndSendBackup(true);
 
-    // Schedule daily backup at 10:00 PM (22:00)
+    // Schedule daily backup at 10:00 PM (22:00) Egypt time
     // Cron format: minute hour * * *
     // "0 22 * * *" = At 22:00 (10 PM) every day
+    // Timezone: Africa/Cairo (Egypt Standard Time / Eastern European Time)
     this.cronJob = cron.schedule("0 22 * * *", () => {
-      console.log("Scheduled 10 PM backup triggered");
+      console.log("Scheduled 10 PM backup triggered (Egypt time)");
       this.checkAndSendBackup(false);
+    }, {
+      timezone: "Africa/Cairo"
     });
 
-    console.log("Scheduled backup at 10:00 PM daily");
+    console.log("Scheduled backup at 10:00 PM daily (Egypt/Cairo timezone)");
 
     // Fallback: Check every hour to catch missed backups
     // (e.g., if app was closed at 10 PM or no internet connection)
@@ -70,23 +74,67 @@ export class BackupScheduler {
       return;
     }
 
-    // 3. Send backup
+    // 3. Send backup (email + local)
     console.log(`[${checkType}] Starting backup process...`);
     
     try {
       const dbPath = getDatabasePath();
-      const success = await EmailService.sendBackup(dbPath);
+      
+      // Always save local backup first
+      const localBackupSuccess = await EmailService.saveLocalBackup(dbPath);
+      if (localBackupSuccess) {
+        console.log(`[${checkType}] Local backup saved successfully`);
+      } else {
+        console.log(`[${checkType}] Local backup failed`);
+      }
+      
+      // Then try to send email backup
+      const emailSuccess = await EmailService.sendBackup(dbPath);
 
-      if (success) {
-        // 4. Update last_sent timestamp
+      if (emailSuccess) {
+        // 4. Update last_sent timestamp only if email succeeded
         db.prepare("UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?")
           .run(today, "last_backup_sent_at");
-        console.log(`[${checkType}] Backup sent successfully and status updated.`);
+        console.log(`[${checkType}] Email backup sent successfully and status updated.`);
       } else {
-        console.log(`[${checkType}] Backup failed to send (EmailService returned false).`);
+        console.log(`[${checkType}] Email backup failed to send (EmailService returned false).`);
+      }
+
+      // Show desktop notification based on results
+      if (localBackupSuccess && emailSuccess) {
+        new Notification({
+          title: "نسخة احتياطية ناجحة",
+          body: "تم حفظ النسخة الاحتياطية محلياً وإرسالها بالبريد الإلكتروني",
+          icon: undefined,
+        }).show();
+      } else if (localBackupSuccess && !emailSuccess) {
+        new Notification({
+          title: "نسخة احتياطية محلية",
+          body: "تم حفظ النسخة الاحتياطية محلياً فقط (فشل إرسال البريد)",
+          icon: undefined,
+        }).show();
+      } else if (!localBackupSuccess && emailSuccess) {
+        new Notification({
+          title: "نسخة احتياطية بالبريد",
+          body: "تم إرسال النسخة بالبريد الإلكتروني (فشل الحفظ المحلي)",
+          icon: undefined,
+        }).show();
+      } else {
+        new Notification({
+          title: "فشل النسخة الاحتياطية",
+          body: "فشل حفظ النسخة الاحتياطية محلياً وعبر البريد",
+          icon: undefined,
+        }).show();
       }
     } catch (err) {
       console.error(`[${checkType}] Backup failed with error:`, err);
+      
+      // Show error notification
+      new Notification({
+        title: "خطأ في النسخة الاحتياطية",
+        body: "حدث خطأ أثناء إنشاء النسخة الاحتياطية",
+        icon: undefined,
+      }).show();
     }
   }
 }

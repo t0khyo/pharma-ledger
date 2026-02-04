@@ -2,7 +2,6 @@ import {
   IconLogout,
   IconSettings,
   IconUser,
-  IconChevronsLeft,
 } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -74,7 +73,7 @@ export function NavUser({
                   {user.email}
                 </span>
               </div>
-              <IconChevronsLeft className="mr-auto size-4" />
+              <IconSettings className="mr-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

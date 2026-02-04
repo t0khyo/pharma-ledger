@@ -54,6 +54,7 @@ const settingsApi = {
   get: (): Promise<any> => ipcRenderer.invoke("settings:get"),
   save: (settings: any): Promise<any> => ipcRenderer.invoke("settings:save", settings),
   testEmail: (settings: any): Promise<any> => ipcRenderer.invoke("settings:test-email", settings),
+  selectBackupFolder: (): Promise<{ success: boolean; path: string }> => ipcRenderer.invoke("settings:select-backup-folder"),
 };
 
 const authApi = {

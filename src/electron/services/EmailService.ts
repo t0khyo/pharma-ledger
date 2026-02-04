@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
-import { statSync } from "fs";
+import { statSync, existsSync, mkdirSync, copyFileSync, readdirSync, unlinkSync } from "fs";
+import { join, dirname } from "path";
+import { app } from "electron";
 import { getDatabaseConnection, getDatabasePath } from "../db/db.js";
 
 interface EmailSettings {
@@ -46,8 +48,87 @@ export class EmailService {
   }
 
   private static getBackupFilename(): string {
-    const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    return `pharma_ledger_${date}.db`;
+    const now = new Date();
+    const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const time = now.toTimeString().split(' ')[0].replace(/:/g, ''); // HHMMSS
+    return `pharma_ledger_${date}_${time}.db`;
+  }
+
+  private static cleanupOldBackups(backupDir: string): void {
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth(); // 0-11
+      const currentYear = now.getFullYear();
+      
+      // Read all files in backup directory
+      const files = readdirSync(backupDir);
+      
+      files.forEach(file => {
+        // Only process our backup files (pharma_ledger_*.db)
+        if (file.startsWith('pharma_ledger_') && file.endsWith('.db')) {
+          // Extract date from filename: pharma_ledger_2026-02-04_220000.db
+          const match = file.match(/pharma_ledger_(\d{4})-(\d{2})-\d{2}_\d{6}\.db/);
+          
+          if (match) {
+            const fileYear = parseInt(match[1]);
+            const fileMonth = parseInt(match[2]) - 1; // Convert to 0-11
+            
+            // Delete if file is from a previous month or year
+            if (fileYear < currentYear || (fileYear === currentYear && fileMonth < currentMonth)) {
+              const filePath = join(backupDir, file);
+              unlinkSync(filePath);
+              console.log(`Deleted old backup: ${file}`);
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error cleaning up old backups:", error);
+    }
+  }
+
+  static async saveLocalBackup(dbPath: string): Promise<boolean> {
+    try {
+      const db = getDatabaseConnection();
+      
+      // Get configured backup path from settings
+      const settingsRow = db.prepare("SELECT value FROM settings WHERE key = ?").get("local_backup_path") as { value: string } | undefined;
+      const configuredPath = settingsRow?.value || "";
+      
+      let backupDir: string;
+      
+      if (configuredPath && configuredPath.trim() !== "") {
+        // Use configured custom path
+        backupDir = configuredPath;
+      } else {
+        // Default to userData/backup (persists across updates)
+        const userDataPath = app.getPath('userData');
+        backupDir = join(userDataPath, 'backup');
+      }
+      
+      // Create backup directory if it doesn't exist
+      if (!existsSync(backupDir)) {
+        mkdirSync(backupDir, { recursive: true });
+        console.log(`Created backup directory at: ${backupDir}`);
+      }
+      
+      // Generate timestamped filename
+      const filename = this.getBackupFilename();
+      const backupPath = join(backupDir, filename);
+      
+      // Copy database file to backup location
+      copyFileSync(dbPath, backupPath);
+      
+      console.log(`Local backup saved: ${backupPath}`);
+      
+      // Clean up old backups (keep only current month)
+      this.cleanupOldBackups(backupDir);
+      
+      return true;
+    } catch (error) {
+      console.error("Error saving local backup:", error);
+      return false;
+    }
   }
 
   private static getBackupStats(): BackupStats {
@@ -389,6 +470,10 @@ export class EmailService {
           },
         ],
       });
+
+      // Also save local backup
+      await this.saveLocalBackup(dbPath);
+      console.log("Test backup: Local backup also saved");
 
       return true;
     } catch (error) {

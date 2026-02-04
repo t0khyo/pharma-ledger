@@ -23,4 +23,5 @@ export function createSettingsTable(db: Database) {
   insert.run("backup_smtp_user", "");
   insert.run("backup_smtp_pass", "");
   insert.run("last_backup_sent_at", "");
+  insert.run("local_backup_path", "");
 }

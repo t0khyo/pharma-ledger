@@ -188,7 +188,7 @@ export default function Debts() {
           <CardContent>
             <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : stats.netBalance > 0 ? "text-yellow-600" : "text-green-600"}`}>
               {showSensitive ? (
-                formatCurrency(stats.netBalance)
+                formatCurrency(Math.abs(stats.netBalance))
               ) : (
                 <span className="blur-md select-none bg-muted/50 rounded px-2">
                   ******

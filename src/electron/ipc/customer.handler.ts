@@ -4,10 +4,10 @@ import type { CustomerInput } from "../../shared/types/customer.types.js";
 import type { ApiResponse } from "../../shared/types/electron.js";
 
 export function registerCustomerHandlers() {
-  ipcMain.handle("customers:get-all", async (_event, options: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC' } = {}) => {
+  ipcMain.handle("customers:get-all", async (_event, options: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC', lateOnly?: boolean, lateDays?: number } = {}) => {
     try {
-      const { search, sortBy, sortOrder } = options;
-      const customers = CustomerService.getAll(search, sortBy, sortOrder);
+      const { search, sortBy, sortOrder, lateOnly, lateDays } = options;
+      const customers = CustomerService.getAll(search, sortBy, sortOrder, lateOnly, lateDays);
       return { success: true, data: customers };
     } catch (error) {
       console.error("Error fetching customers:", error);

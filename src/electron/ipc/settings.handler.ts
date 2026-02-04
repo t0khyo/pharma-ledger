@@ -48,4 +48,18 @@ export function registerSettingsHandlers() {
           return { success: false, error: String(error) };
       }
   });
+
+  ipcMain.handle("settings:select-backup-folder", async () => {
+    const { dialog } = await import("electron");
+    const result = await dialog.showOpenDialog({
+      properties: ["openDirectory", "createDirectory"],
+      title: "اختر مجلد النسخ الاحتياطية المحلية"
+    });
+    
+    if (result.canceled || result.filePaths.length === 0) {
+      return { success: false, path: "" };
+    }
+    
+    return { success: true, path: result.filePaths[0] };
+  });
 }

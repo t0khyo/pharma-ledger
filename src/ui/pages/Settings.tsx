@@ -23,6 +23,7 @@ export default function Settings() {
     backup_smtp_port: "587",
     backup_smtp_user: "",
     backup_smtp_pass: "",
+    local_backup_path: "",
   });
 
   useEffect(() => {
@@ -86,6 +87,23 @@ export default function Settings() {
     } finally {
       setTesting(false);
     }
+  };
+
+  const handleSelectFolder = async () => {
+    try {
+      const result = await window.api.settings.selectBackupFolder();
+      if (result.success && result.path) {
+        handleChange("local_backup_path", result.path);
+        toast.success("تم اختيار المجلد بنجاح");
+      }
+    } catch (error) {
+      toast.error("فشل في اختيار المجلد");
+    }
+  };
+
+  const handleUseDefaultFolder = () => {
+    handleChange("local_backup_path", "");
+    toast.success("سيتم استخدام المجلد الافتراضي");
   };
 
   if (loading) {
@@ -200,6 +218,47 @@ export default function Settings() {
               </AlertDescription>
             </Alert>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>النسخ الاحتياطي المحلي</CardTitle>
+          <CardDescription>حدد مجلد لحفظ النسخ الاحتياطية المحلية تلقائياً</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>مجلد النسخ الاحتياطية المحلية</Label>
+            <div className="flex gap-2">
+              <Input 
+                value={settings.local_backup_path || "المجلد الافتراضي (AppData/Pharma Ledger/backup)"} 
+                readOnly
+                className="flex-1 direction-ltr text-left"
+                placeholder="اختر مجلداً أو استخدم الافتراضي"
+              />
+              <Button variant="outline" onClick={handleSelectFolder}>
+                تصفح
+              </Button>
+              {settings.local_backup_path && (
+                <Button variant="outline" onClick={handleUseDefaultFolder}>
+                  استخدام الافتراضي
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {settings.local_backup_path 
+                ? "المجلد المخصص سيستخدم لحفظ النسخ الاحتياطية" 
+                : "سيتم حفظ النسخ الاحتياطية في المجلد الافتراضي الذي لا يُحذف عند تحديث التطبيق"
+              }
+            </p>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSave} disabled={saving}>
+              حفظ الإعدادات
+              {saving ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Save className="w-4 h-4 ml-2" />}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
