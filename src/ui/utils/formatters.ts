@@ -9,7 +9,6 @@ export const formatNumber = (value: number): string => {
     maximumFractionDigits: 2,
   }).format(value);
 };
-
 /**
  * Format a number as currency (EGP) with Western digits.
  * @param amount - The amount to format
@@ -22,3 +21,4 @@ export const formatCurrency = (amount: number): string => {
     maximumFractionDigits: 0,
   }).format(amount);
 };
+

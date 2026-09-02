@@ -244,11 +244,11 @@ export default function CustomerDetails() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
-            <IconWallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : stats.netBalance > 0 ? "text-yellow-500" : "text-green-500"}`} />
+            <IconWallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : "text-green-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : stats.netBalance > 0 ? "text-yellow-600" : "text-green-600"}`}>
-              {formatCurrency(stats.netBalance)}
+            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : "text-green-600"}`}>
+              {stats.netBalance > 0 ? `- ${formatCurrency(stats.netBalance)}` : formatCurrency(Math.abs(stats.netBalance))}
             </div>
           </CardContent>
         </Card>

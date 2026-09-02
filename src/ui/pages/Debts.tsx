@@ -32,7 +32,7 @@ import {
   IconEyeOff,
   IconDotsVertical,
   IconArrowUpRight,
-  IconArrowDownLeft,
+  IconInfoCircle,
   IconWallet,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
@@ -43,6 +43,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { formatCurrency } from "@/utils/formatters";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Debts() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -166,10 +167,10 @@ export default function Debts() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي التسديدات</CardTitle>
-            <IconArrowDownLeft className="h-4 w-4 text-green-500" />
+            <IconArrowUpRight className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-blue-600">
               {showSensitive ? (
                 formatCurrency(stats.totalPayments)
               ) : (
@@ -182,13 +183,29 @@ export default function Debts() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
-            <IconWallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : stats.netBalance > 0 ? "text-yellow-500" : "text-green-500"}`} />
+            <CardTitle className="flex items-center gap-1 text-sm font-medium">
+              صافي الرصيد
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="شرح صافي الرصيد"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <IconInfoCircle className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="start">
+                  صافي الرصيد = إجمالي التسديدات - إجمالي الديون. الأخضر مع علامة (-) يعني رصيداً لصالح العملاء، والأحمر بدون علامة يعني ديناً مستحقاً.
+                </TooltipContent>
+              </Tooltip>
+            </CardTitle>
+            <IconWallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : "text-green-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : stats.netBalance > 0 ? "text-yellow-600" : "text-green-600"}`}>
+            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : "text-green-600"}`}>
               {showSensitive ? (
-                formatCurrency(Math.abs(stats.netBalance))
+                stats.netBalance > 0 ? `- ${formatCurrency(stats.netBalance)}` : formatCurrency(Math.abs(stats.netBalance))
               ) : (
                 <span className="blur-md select-none bg-muted/50 rounded px-2">
                   ******

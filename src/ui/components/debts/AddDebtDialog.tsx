@@ -165,13 +165,13 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
                 const balance = customer.balance;
                 let colorClass = "text-green-600 font-bold";
                 if (balance < 0) colorClass = "text-red-600 font-bold";
-                else if (balance > 0) colorClass = "text-yellow-600 font-bold";
+                else if (balance > 0) colorClass = "text-green-600 font-bold";
 
                 return (
                     <div className="text-xs text-muted-foreground px-1 flex gap-1">
                         <span>الرصيد الحالي:</span>
                         <span className={colorClass}>
-                             {formatCurrency(balance)}
+                          {balance > 0 ? `- ${formatCurrency(balance)}` : formatCurrency(Math.abs(balance))}
                         </span>
                     </div>
                 );
@@ -229,13 +229,13 @@ export function AddDebtDialog({ open, onOpenChange, onSuccess }: AddDebtDialogPr
 
                 let colorClass = "text-green-600 font-bold";
                 if (predictedBalance < 0) colorClass = "text-red-600 font-bold";
-                else if (predictedBalance > 0) colorClass = "text-yellow-600 font-bold";
+                else if (predictedBalance > 0) colorClass = "text-green-600 font-bold";
 
                 return (
                     <div className="text-xs text-muted-foreground px-1 flex gap-1">
                         <span>الرصيد بعد الدين:</span>
                         <span className={colorClass}>
-                             {formatCurrency(predictedBalance)}
+                              {predictedBalance > 0 ? `- ${formatCurrency(predictedBalance)}` : formatCurrency(Math.abs(predictedBalance))}
                         </span>
                     </div>
                 );

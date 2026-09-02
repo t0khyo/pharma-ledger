@@ -1,10 +1,10 @@
-import cron from "node-cron";
+import cron, { type ScheduledTask } from "node-cron";
 import { Notification } from "electron";
 import { getDatabaseConnection, getDatabasePath } from "../db/db.js";
 import { EmailService } from "./EmailService.js";
 
 export class BackupScheduler {
-  private static cronJob: cron.ScheduledTask | null = null;
+  private static cronJob: ScheduledTask | null = null;
   private static fallbackInterval: NodeJS.Timeout | null = null;
 
   static init() {

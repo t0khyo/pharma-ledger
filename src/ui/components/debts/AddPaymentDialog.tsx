@@ -175,7 +175,7 @@ export function AddPaymentDialog({
                 const balance = customer.balance;
                 let colorClass = "text-green-600 font-bold";
                 if (balance < 0) colorClass = "text-red-600 font-bold";
-                else if (balance > 0) colorClass = "text-yellow-600 font-bold";
+                else if (balance > 0) colorClass = "text-green-600 font-bold";
                 const isDebt = balance < 0;
                 
                 return (
@@ -183,7 +183,7 @@ export function AddPaymentDialog({
                         <div className="flex gap-2 text-muted-foreground">
                             <span>الرصيد الحالي:</span>
                             <span className={colorClass}>
-                                {formatCurrency(customer.balance)}
+                              {balance > 0 ? `- ${formatCurrency(balance)}` : formatCurrency(Math.abs(balance))}
                             </span>
                         </div>
                         
@@ -226,13 +226,13 @@ export function AddPaymentDialog({
                 
                 let colorClass = "text-green-600 font-bold";
                 if (remainingBalance < 0) colorClass = "text-red-600 font-bold";
-                else if (remainingBalance > 0) colorClass = "text-yellow-600 font-bold";
+                else if (remainingBalance > 0) colorClass = "text-green-600 font-bold";
 
                 return (
                     <div className="text-xs text-muted-foreground px-1 flex gap-1">
                         <span>الرصيد بعد السداد:</span>
                         <span className={colorClass}>
-                             {formatCurrency(remainingBalance)}
+                              {remainingBalance > 0 ? `- ${formatCurrency(remainingBalance)}` : formatCurrency(Math.abs(remainingBalance))}
                         </span>
                     </div>
                 );

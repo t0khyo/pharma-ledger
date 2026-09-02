@@ -187,10 +187,10 @@ export default function Customers() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الأرصدة</CardTitle>
-            <TrendingDown className="h-4 w-4 text-yellow-500" />
+            <TrendingDown className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-green-600">
               {formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, c.balance || 0), 0))}
             </div>
           </CardContent>
@@ -198,11 +198,13 @@ export default function Customers() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
-            <Wallet className={`h-4 w-4 ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-500" : customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0 ? "text-yellow-500" : "text-green-500"}`} />
+            <Wallet className={`h-4 w-4 ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-500" : customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0 ? "text-green-500" : "text-green-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-600" : customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0 ? "text-yellow-600" : "text-green-600"}`}>
-              {formatCurrency(Math.abs(customers.reduce((sum, c) => sum + (c.balance || 0), 0)))}
+            <div className={`text-2xl font-bold ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-600" : "text-green-600"}`}>
+              {customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0
+                ? `- ${formatCurrency(customers.reduce((sum, c) => sum + (c.balance || 0), 0))}`
+                : formatCurrency(Math.abs(customers.reduce((sum, c) => sum + (c.balance || 0), 0)))}
             </div>
           </CardContent>
         </Card>
@@ -311,7 +313,7 @@ export default function Customers() {
                     <span className={cn(
                       "font-bold",
                       (customer.balance || 0) < 0 ? "text-red-600" : 
-                      (customer.balance || 0) > 0 ? "text-yellow-600" : "text-green-600"
+                      (customer.balance || 0) > 0 ? "text-green-600" : "text-green-600"
                     )}>
                       {(customer.balance || 0) < 0 
                         ? formatCurrency(Math.abs(customer.balance || 0))
