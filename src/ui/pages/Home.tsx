@@ -5,7 +5,9 @@ import {
   IconTrendingUp,
   IconBuildings,
   IconLoader,
+  IconInfoCircle,
 } from "@tabler/icons-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   Card,
   CardContent,
@@ -53,6 +55,7 @@ export default function Home() {
   const statCards = [
     {
       title: "الديون غير المسددة",
+      description: "مجموع المبالغ المستحقة على العملاء والتي لم يتم تسديدها بعد",
       value: stats ? formatCurrency(stats.unpaidDebts) : "-",
       icon: IconCreditCard,
       color: "text-red-500",
@@ -61,6 +64,7 @@ export default function Home() {
     },
     {
       title: "عدد العملاء",
+      description: "إجمالي عدد العملاء المسجلين في النظام",
       value: stats ? formatNumber(stats.totalCustomers) : "-",
       icon: IconUsers,
       color: "text-blue-500",
@@ -68,6 +72,7 @@ export default function Home() {
     },
     {
       title: "إيرادات الشهر",
+      description: "مجموع الدخل والأموال التي تم تحصيلها خلال الشهر الحالي",
       value: stats ? formatCurrency(stats.monthlyIncome) : "-",
       icon: IconTrendingUp,
       color: "text-green-500",
@@ -76,6 +81,7 @@ export default function Home() {
     },
     {
       title: "عدد الشركات",
+      description: "إجمالي عدد الشركات التي تتعامل معها",
       value: stats ? formatNumber(stats.totalCompanies) : "-",
       icon: IconBuildings,
       color: "text-purple-500",
@@ -160,31 +166,43 @@ export default function Home() {
 
       {/* Stats Grid with Enhanced Cards */}
       {hasRole("admin") && (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {visibleStats.map((stat) => (
-            <Card key={stat.title} className="border-border/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5">
-                <CardTitle className="text-xs font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-1 rounded-md bg-muted/50`}>
-                  <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="text-xl font-bold">
-                  {stat.sensitive && !showSensitive ? (
-                    <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">
-                      ******
-                    </span>
-                  ) : (
-                    stat.value
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <TooltipProvider>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {visibleStats.map((stat) => (
+              <Card key={stat.title} className="border-border/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5">
+                  <CardTitle className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                    {stat.title}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help">
+                          <IconInfoCircle className="h-3.5 w-3.5 hover:text-foreground transition-colors" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="center">
+                        <p className="max-w-[200px] text-center text-sm">{stat.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </CardTitle>
+                  <div className={`p-1 rounded-md bg-muted/50`}>
+                    <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-xl font-bold">
+                    {stat.sensitive && !showSensitive ? (
+                      <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">
+                        ******
+                      </span>
+                    ) : (
+                      stat.value
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TooltipProvider>
       )}
 
       {/* Main Content Grid */}
