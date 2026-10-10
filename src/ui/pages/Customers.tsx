@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown, Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, EyeOff, ArrowUp, ArrowDown, ArrowUpDown, Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,6 +35,7 @@ import { formatCurrency } from "@/utils/formatters";
 
 export default function Customers() {
   const navigate = useNavigate();
+  const [showSensitive, setShowSensitive] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -154,10 +155,25 @@ export default function Customers() {
           <h1 className="text-3xl font-bold">العملاء</h1>
           <p className="text-muted-foreground mt-2">إدارة بيانات العملاء وتفاصيل التواصل</p>
         </div>
-        <Button onClick={() => handleOpenDialog()} className="gap-2">
-          <Plus className="w-4 h-4" />
-          إضافة عميل
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setShowSensitive(!showSensitive)}
+            title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
+            className="h-10 w-10 rounded-lg"
+          >
+            {showSensitive ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </Button>
+          <Button onClick={() => handleOpenDialog()} className="gap-2">
+            <Plus className="w-4 h-4" />
+            إضافة عميل
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -180,7 +196,11 @@ export default function Customers() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, -(c.balance || 0)), 0))}
+              {!showSensitive ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
+              ) : (
+                formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, -(c.balance || 0)), 0))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -191,7 +211,11 @@ export default function Customers() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, c.balance || 0), 0))}
+              {!showSensitive ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
+              ) : (
+                formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, c.balance || 0), 0))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -202,9 +226,13 @@ export default function Customers() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-600" : "text-green-600"}`}>
-              {customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0
-                ? `- ${formatCurrency(customers.reduce((sum, c) => sum + (c.balance || 0), 0))}`
-                : formatCurrency(Math.abs(customers.reduce((sum, c) => sum + (c.balance || 0), 0)))}
+              {!showSensitive ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
+              ) : (
+                customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0
+                  ? `- ${formatCurrency(customers.reduce((sum, c) => sum + (c.balance || 0), 0))}`
+                  : formatCurrency(Math.abs(customers.reduce((sum, c) => sum + (c.balance || 0), 0)))
+              )}
             </div>
           </CardContent>
         </Card>

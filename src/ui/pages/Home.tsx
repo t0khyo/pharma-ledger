@@ -97,6 +97,54 @@ export default function Home() {
     );
   }
 
+  const quickActionButtons = (
+    <>
+      <Button 
+        variant="outline" 
+        className="h-20 flex-col gap-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 hover:border-red-300 dark:hover:border-red-800 transition-all rounded-lg group" 
+        onClick={() => navigate("/debts")}
+      >
+        <div className="p-1.5 rounded-md bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+          <IconCreditCard className="h-4 w-4" />
+        </div>
+        <span className="font-medium text-xs">الديون</span>
+      </Button>
+      
+      <Button 
+        variant="outline" 
+        className="h-20 flex-col gap-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 hover:border-blue-300 dark:hover:border-blue-800 transition-all rounded-lg group" 
+        onClick={() => navigate("/customers")}
+      >
+        <div className="p-1.5 rounded-md bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
+          <IconUsers className="h-4 w-4" />
+        </div>
+        <span className="font-medium text-xs">العملاء</span>
+      </Button>
+      
+      <Button 
+        variant="outline" 
+        className="h-20 flex-col gap-1.5 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 hover:border-green-300 dark:hover:border-green-800 transition-all rounded-lg group" 
+        onClick={() => navigate("/reports")}
+      >
+        <div className="p-1.5 rounded-md bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+          <IconTrendingUp className="h-4 w-4" />
+        </div>
+        <span className="font-medium text-xs">التقارير</span>
+      </Button>
+      
+      <Button
+        variant="outline"
+        className="h-20 flex-col gap-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 hover:border-purple-300 dark:hover:border-purple-800 transition-all rounded-lg group"
+        onClick={() => navigate("/companies")}
+      >
+        <div className="p-1.5 rounded-md bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+          <IconBuildings className="h-4 w-4" />
+        </div>
+        <span className="font-medium text-xs">الشركات</span>
+      </Button>
+    </>
+  );
+
   return (
     <div className="space-y-4">
       {/* Welcome Section */}
@@ -132,34 +180,36 @@ export default function Home() {
       </Card>
 
       {/* Stats Grid with Enhanced Cards */}
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        {visibleStats.map((stat) => (
-          <Card key={stat.title} className="border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-1 rounded-md bg-muted/50`}>
-                <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent className="pb-2">
-              <div className="text-xl font-bold">
-                {stat.sensitive && !showSensitive ? (
-                  <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">
-                    ******
-                  </span>
-                ) : (
-                  stat.value
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {hasRole("admin") && (
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          {visibleStats.map((stat) => (
+            <Card key={stat.title} className="border-border/50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-1 rounded-md bg-muted/50`}>
+                  <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
+                </div>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="text-xl font-bold">
+                  {stat.sensitive && !showSensitive ? (
+                    <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">
+                      ******
+                    </span>
+                  ) : (
+                    stat.value
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Main Content Grid */}
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className={`grid gap-3 ${hasRole("admin") ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
         {/* Donut Chart Section - Takes 1 column */}
         {hasRole("admin") && stats && (
           <Card className="border-border/50">
@@ -274,8 +324,8 @@ export default function Home() {
           </Card>
         )}
 
-        {/* Recent Activities - Takes 2 columns */}
-        <Card className="lg:col-span-2 border-border/50">
+        {/* Recent Activities - Takes 2 columns for admin */}
+        <Card className={`${hasRole("admin") ? "lg:col-span-2" : ""} border-border/50`}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
@@ -354,61 +404,35 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Quick Actions (Employee) */}
+        {!hasRole("admin") && (
+          <Card className="border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">إجراءات سريعة</CardTitle>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <div className="grid gap-2 grid-cols-2">
+                {quickActionButtons}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Quick Actions */}
-      <Card className="border-border/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">إجراءات سريعة</CardTitle>
-        </CardHeader>
-        <CardContent className="pb-2">
-          <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col gap-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 hover:border-red-300 dark:hover:border-red-800 transition-all rounded-lg group" 
-              onClick={() => navigate("/debts")}
-            >
-              <div className="p-1.5 rounded-md bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
-                <IconCreditCard className="h-4 w-4" />
-              </div>
-              <span className="font-medium text-xs">الديون</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col gap-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 hover:border-blue-300 dark:hover:border-blue-800 transition-all rounded-lg group" 
-              onClick={() => navigate("/customers")}
-            >
-              <div className="p-1.5 rounded-md bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
-                <IconUsers className="h-4 w-4" />
-              </div>
-              <span className="font-medium text-xs">العملاء</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col gap-1.5 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 hover:border-green-300 dark:hover:border-green-800 transition-all rounded-lg group" 
-              onClick={() => navigate("/reports")}
-            >
-              <div className="p-1.5 rounded-md bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-                <IconTrendingUp className="h-4 w-4" />
-              </div>
-              <span className="font-medium text-xs">التقارير</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="h-20 flex-col gap-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 hover:border-purple-300 dark:hover:border-purple-800 transition-all rounded-lg group"
-              onClick={() => navigate("/companies")}
-            >
-              <div className="p-1.5 rounded-md bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                <IconBuildings className="h-4 w-4" />
-              </div>
-              <span className="font-medium text-xs">الشركات</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Quick Actions (Admin) */}
+      {hasRole("admin") && (
+        <Card className="border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">إجراءات سريعة</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-2">
+            <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+              {quickActionButtons}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Financial Overview - Compact */}
       {hasRole("admin") && stats && (
