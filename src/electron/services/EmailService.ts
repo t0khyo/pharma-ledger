@@ -47,11 +47,14 @@ export class EmailService {
     return { host, port, user, pass, sender, recipient };
   }
 
-  private static getBackupFilename(): string {
+  private static getBackupFilename(includeTime: boolean = true): string {
     const now = new Date();
     const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const time = now.toTimeString().split(' ')[0].replace(/:/g, ''); // HHMMSS
-    return `pharma_ledger_${date}_${time}.db`;
+    if (includeTime) {
+      const time = now.toTimeString().split(' ')[0].replace(/:/g, ''); // HHMMSS
+      return `pharma_ledger_${date}_${time}.db`;
+    }
+    return `pharma_ledger_${date}.db`;
   }
 
   private static cleanupOldBackups(backupDir: string): void {
@@ -66,8 +69,8 @@ export class EmailService {
       files.forEach(file => {
         // Only process our backup files (pharma_ledger_*.db)
         if (file.startsWith('pharma_ledger_') && file.endsWith('.db')) {
-          // Extract date from filename: pharma_ledger_2026-02-04_220000.db
-          const match = file.match(/pharma_ledger_(\d{4})-(\d{2})-\d{2}_\d{6}\.db/);
+          // Extract date from filename (handles both with and without time)
+          const match = file.match(/pharma_ledger_(\d{4})-(\d{2})-(\d{2})(?:_\d{6})?\.db/);
           
           if (match) {
             const fileYear = parseInt(match[1]);
@@ -112,8 +115,8 @@ export class EmailService {
         console.log(`Created backup directory at: ${backupDir}`);
       }
       
-      // Generate timestamped filename
-      const filename = this.getBackupFilename();
+      // Generate timestamped filename (local backup uses date only to overwrite today's file)
+      const filename = this.getBackupFilename(false);
       const backupPath = join(backupDir, filename);
       
       // Copy database file to backup location

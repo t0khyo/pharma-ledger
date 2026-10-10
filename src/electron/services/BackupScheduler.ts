@@ -5,29 +5,35 @@ import { EmailService } from "./EmailService.js";
 
 export class BackupScheduler {
   private static cronJob: ScheduledTask | null = null;
+  private static localCronJob: ScheduledTask | null = null;
   private static fallbackInterval: NodeJS.Timeout | null = null;
 
   static init() {
     console.log("Initializing backup scheduler...");
 
-    // Check immediately on startup (fallback for missed backups)
+    // Check immediately on startup (fallback for missed email backups)
     this.checkAndSendBackup(true);
+    
+    // Perform an initial local backup shortly after startup
+    setTimeout(() => this.performLocalBackup(), 5000);
 
-    // Schedule daily backup at 10:00 PM (22:00) Egypt time
-    // Cron format: minute hour * * *
-    // "0 22 * * *" = At 22:00 (10 PM) every day
-    // Timezone: Africa/Cairo (Egypt Standard Time / Eastern European Time)
+    // Schedule daily email backup at 10:00 PM (22:00) Egypt time
     this.cronJob = cron.schedule("0 22 * * *", () => {
-      console.log("Scheduled 10 PM backup triggered (Egypt time)");
+      console.log("Scheduled 10 PM email backup triggered (Egypt time)");
       this.checkAndSendBackup(false);
     }, {
       timezone: "Africa/Cairo"
     });
 
-    console.log("Scheduled backup at 10:00 PM daily (Egypt/Cairo timezone)");
+    // Schedule local backup every 2 hours
+    this.localCronJob = cron.schedule("0 */2 * * *", () => {
+      console.log("Scheduled 2-hour local backup triggered");
+      this.performLocalBackup();
+    });
 
-    // Fallback: Check every hour to catch missed backups
-    // (e.g., if app was closed at 10 PM or no internet connection)
+    console.log("Scheduled email backup at 10:00 PM daily, local backup every 2 hours");
+
+    // Fallback: Check every hour to catch missed email backups
     this.fallbackInterval = setInterval(() => {
       console.log("Hourly fallback check triggered");
       this.checkAndSendBackup(true);
@@ -42,10 +48,34 @@ export class BackupScheduler {
       this.cronJob = null;
       console.log("10 PM cron job stopped");
     }
+    if (this.localCronJob) {
+      this.localCronJob.stop();
+      this.localCronJob = null;
+      console.log("2-hour local cron job stopped");
+    }
     if (this.fallbackInterval) {
       clearInterval(this.fallbackInterval);
       this.fallbackInterval = null;
       console.log("Fallback interval stopped");
+    }
+  }
+
+  private static async performLocalBackup() {
+    console.log("[Local Backup] Checking status...");
+    const db = getDatabaseConnection();
+    
+    const enabledRow = db.prepare("SELECT value FROM settings WHERE key = ?").get("backup_enabled") as { value: string } | undefined;
+    if (enabledRow?.value !== "true") {
+        console.log("[Local Backup] Backup is disabled.");
+        return;
+    }
+
+    try {
+      const dbPath = getDatabasePath();
+      await EmailService.saveLocalBackup(dbPath);
+      console.log("[Local Backup] Successfully updated today's backup file.");
+    } catch (err) {
+      console.error("[Local Backup] Failed:", err);
     }
   }
 
