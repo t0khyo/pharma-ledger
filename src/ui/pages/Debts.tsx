@@ -47,6 +47,7 @@ import { useSensitive } from "@/contexts/SensitiveContext";
 
 export default function Debts() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [totalTransactions, setTotalTransactions] = useState(0);
   const [stats, setStats] = useState<TransactionStats>({
     totalDebts: 0,
     totalPayments: 0,
@@ -57,7 +58,9 @@ export default function Debts() {
   const [searchQuery, setSearchQuery] = useState("");
   const { showSensitive } = useSensitive();
 
-
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   // Dialog states
   const [showAddDebt, setShowAddDebt] = useState(false);
   const [showAddPayment, setShowAddPayment] = useState(false);
@@ -66,26 +69,31 @@ export default function Debts() {
 
   useEffect(() => {
     loadData();
-  }, [filters]);
+  }, [filters, currentPage]);
 
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters((prev) => ({ ...prev, query: searchQuery }));
+      setCurrentPage(1); // Reset page on new search
     }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Derived state for pagination
+  const totalPages = Math.ceil(totalTransactions / itemsPerPage);
 
   const loadData = async () => {
 
     try {
       const [transactionsResult, statsResult] = await Promise.all([
-        window.api.transactions.getAll(filters),
+        window.api.transactions.getAll({ ...filters, limit: itemsPerPage, offset: (currentPage - 1) * itemsPerPage }),
         window.api.transactions.getStats(filters),
       ]);
 
       if (transactionsResult.success && transactionsResult.data) {
         setTransactions(transactionsResult.data);
+        setTotalTransactions(transactionsResult.total || 0);
       }
       if (statsResult.success && statsResult.data) {
         setStats(statsResult.data);
@@ -336,6 +344,36 @@ export default function Debts() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-sm text-muted-foreground">
+            عرض {(currentPage - 1) * itemsPerPage + 1} إلى {Math.min(currentPage * itemsPerPage, totalTransactions)} من أصل {totalTransactions} عملية
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              السابق
+            </Button>
+            <div className="text-sm font-medium">
+              صفحة {currentPage} من {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              التالي
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Dialogs */}
       <AddDebtDialog

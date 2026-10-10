@@ -120,6 +120,7 @@
   html,
   body {
     direction: rtl;
+    font-size: 106.25%; /* Scales 1rem from 16px to 17px */
   }
 
   .scroll-left {

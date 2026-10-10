@@ -13,15 +13,16 @@ function normalizeArabicName(text: string): string {
 }
 
 export class CustomerService {
-  static getAll(search?: string, sortBy: string = 'created_at', sortOrder: 'ASC' | 'DESC' = 'DESC', lateOnly?: boolean, lateDays: number = 21): Customer[] {
+  static getAll(options: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC', lateOnly?: boolean, lateDays?: number, limit?: number, offset?: number } = {}): { data: Customer[], total: number } {
+    const { search, sortBy = 'created_at', sortOrder = 'DESC', lateOnly, lateDays = 21, limit, offset } = options;
     const db = getDatabaseConnection();
     
     // Whitelist allowed columns to prevent SQL injection
-    const allowedSortColumns = ['name', 'balance', 'created_at', 'days_since_activity'];
+    const allowedSortColumns = ['name', 'balance', 'created_at', 'days_since_activity', 'phone'];
     const validSortBy = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at';
     const validSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
     
-    let query = `
+    let baseQuery = `
       SELECT c.*, 
         COALESCE(SUM(CASE 
           WHEN t.type = 'payment' THEN t.amount 
@@ -43,24 +44,89 @@ export class CustomerService {
     }
 
     if (whereConditions.length > 0) {
-      query += " WHERE " + whereConditions.join(" AND ");
+      baseQuery += " WHERE " + whereConditions.join(" AND ");
     }
 
-    query += " GROUP BY c.id";
+    baseQuery += " GROUP BY c.id";
     
-    // Add HAVING clause for late filter (only customers with balance < 0 and inactive for lateDays)
+    // Add HAVING clause for late filter
     if (lateOnly) {
-      query += ` HAVING balance < 0 AND days_since_activity >= ${lateDays}`;
+      baseQuery += ` HAVING balance < 0 AND days_since_activity >= ${lateDays}`;
     }
+
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as count FROM (${baseQuery})`;
+    const countResult = db.prepare(countQuery).get(...params) as { count: number };
+    const total = countResult.count;
 
     // Special handling for aggregate columns
+    let query = baseQuery;
     const sortClause = (validSortBy === 'balance' || validSortBy === 'days_since_activity') 
       ? validSortBy 
       : `c.${validSortBy}`;
     
-    query += ` ORDER BY ${sortClause} ${validSortOrder}`;
+    if (validSortBy === "phone") {
+      query += ` ORDER BY NULLIF(c.phone, '') IS NULL, c.phone ${validSortOrder}`;
+    } else {
+      query += ` ORDER BY ${sortClause} ${validSortOrder}`;
+    }
 
-    return db.prepare(query).all(...params) as Customer[];
+    if (limit !== undefined) {
+      query += " LIMIT ?";
+      params.push(limit);
+    }
+    if (offset !== undefined) {
+      query += " OFFSET ?";
+      params.push(offset);
+    }
+
+    const data = db.prepare(query).all(...params) as Customer[];
+    return { data, total };
+  }
+
+  static getStats(options: { search?: string, lateOnly?: boolean, lateDays?: number } = {}): { totalCustomers: number, totalDebts: number, totalBalances: number, netBalance: number } {
+    const db = getDatabaseConnection();
+    const { search, lateOnly, lateDays = 21 } = options;
+
+    let baseQuery = `
+      SELECT c.*, 
+        COALESCE(SUM(CASE 
+          WHEN t.type = 'payment' THEN t.amount 
+          WHEN t.type = 'debt' THEN -t.amount 
+          ELSE 0 END), 0) as balance,
+        CAST(JULIANDAY('now') - JULIANDAY(COALESCE(MAX(t.date), c.created_at)) AS INTEGER) as days_since_activity
+      FROM customers c
+      LEFT JOIN transactions t ON c.id = t.customer_id AND t.is_deleted = 0
+    `;
+    let params: any[] = [];
+    let whereConditions: string[] = [];
+
+    if (search) {
+      const normalizedSearch = normalizeArabicName(search);
+      whereConditions.push("(c.normalized_name LIKE ? OR c.phone LIKE ?)");
+      params.push(`%${normalizedSearch}%`, `%${search}%`);
+    }
+
+    if (whereConditions.length > 0) {
+      baseQuery += " WHERE " + whereConditions.join(" AND ");
+    }
+
+    baseQuery += " GROUP BY c.id";
+    
+    if (lateOnly) {
+      baseQuery += ` HAVING balance < 0 AND days_since_activity >= ${lateDays}`;
+    }
+
+    const statsQuery = `
+      SELECT 
+        COUNT(*) as totalCustomers,
+        COALESCE(SUM(CASE WHEN balance < 0 THEN -balance ELSE 0 END), 0) as totalDebts,
+        COALESCE(SUM(CASE WHEN balance > 0 THEN balance ELSE 0 END), 0) as totalBalances,
+        COALESCE(SUM(balance), 0) as netBalance
+      FROM (${baseQuery})
+    `;
+
+    return db.prepare(statsQuery).get(...params) as { totalCustomers: number, totalDebts: number, totalBalances: number, netBalance: number };
   }
 
   static add(customer: CustomerInput): Customer {

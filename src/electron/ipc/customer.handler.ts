@@ -4,14 +4,23 @@ import type { CustomerInput } from "../../shared/types/customer.types.js";
 import type { ApiResponse } from "../../shared/types/electron.js";
 
 export function registerCustomerHandlers() {
-  ipcMain.handle("customers:get-all", async (_event, options: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC', lateOnly?: boolean, lateDays?: number } = {}) => {
+  ipcMain.handle("customers:get-stats", async (_event, options: { search?: string, lateOnly?: boolean, lateDays?: number } = {}) => {
     try {
-      const { search, sortBy, sortOrder, lateOnly, lateDays } = options;
-      const customers = CustomerService.getAll(search, sortBy, sortOrder, lateOnly, lateDays);
-      return { success: true, data: customers };
+      const result = CustomerService.getStats(options);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error("Error fetching customer stats:", error);
+      return { success: false, error: "İÔá İí ÊÍãíá ÅÍÕÇÆíÇÊ ÇáÚãáÇÁ" };
+    }
+  });
+
+  ipcMain.handle("customers:get-all", async (_event, options: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC', lateOnly?: boolean, lateDays?: number, limit?: number, offset?: number } = {}) => {
+    try {
+      const result = CustomerService.getAll(options);
+      return { success: true, data: result.data, total: result.total };
     } catch (error) {
       console.error("Error fetching customers:", error);
-      return { success: false, error: "ÙØ´Ù„ ÙÙŠ Ø¬Ù„Ø¨ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡" };
+      return { success: false, error: "İÔá İí ÌáÈ ÇáÚãáÇÁ" };
     }
   });
 
@@ -21,7 +30,7 @@ export function registerCustomerHandlers() {
       return { success: true, data: newCustomer };
     } catch (error: any) {
       console.error("Error adding customer:", error);
-      return { success: false, error: error.message || "ÙØ´Ù„ ÙÙŠ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¹Ù…ÙŠÙ„" };
+      return { success: false, error: error.message || "İÔá İí ÅÖÇİÉ ÇáÚãíá" };
     }
   });
 
@@ -31,11 +40,11 @@ export function registerCustomerHandlers() {
       if (success) {
         return { success: true };
       } else {
-        return { success: false, error: "Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯" };
+        return { success: false, error: "ÇáãÓÊÎÏã ÛíÑ ãæÌæÏ" };
       }
     } catch (error: any) {
       console.error("Error updating customer:", error);
-      return { success: false, error: error.message || "ÙØ´Ù„ ÙÙŠ ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„" };
+      return { success: false, error: error.message || "İÔá İí ÊÍÏíË ÈíÇäÇÊ ÇáÚãíá" };
     }
   });
 
@@ -45,11 +54,14 @@ export function registerCustomerHandlers() {
       if (success) {
         return { success: true };
       } else {
-        return { success: false, error: "Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯" };
+        return { success: false, error: "ÇáãÓÊÎÏã ÛíÑ ãæÌæÏ" };
       }
     } catch (error) {
       console.error("Error deleting customer:", error);
-      return { success: false, error: "ÙØ´Ù„ ÙÙŠ Ø­Ø°Ù Ø§Ù„Ø¹Ù…ÙŠÙ„" };
+      return { success: false, error: "İÔá İí ÍĞİ ÇáÚãíá" };
     }
   });
 }
+
+
+

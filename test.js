@@ -1,0 +1,1 @@
+const db = require('better-sqlite3')('C:/Users/abdelrahman/AppData/Roaming/Pharma Ledger/app.db'); console.log(db.prepare(WITH RECURSIVE dates(date) AS (SELECT '2026-10-09' UNION ALL SELECT date(date, '+1 day') FROM dates WHERE date < '2026-11-08' AND CAST(JULIANDAY(date) - JULIANDAY('2026-10-09') AS INTEGER) < 100) SELECT count(*) FROM dates).get());

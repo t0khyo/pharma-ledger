@@ -1,4 +1,4 @@
-import { ipcMain } from "electron";
+﻿import { ipcMain } from "electron";
 import { TransactionService } from "../services/transaction.service.js";
 import type { CreateTransactionInput, TransactionFilters } from "../../shared/types/transaction.types.js";
 import type { ApiResponse } from "../../shared/types/electron.js";
@@ -21,10 +21,10 @@ export function registerTransactionHandlers() {
 
   ipcMain.handle(
     "transaction:getAll",
-    async (_event, filters: TransactionFilters): Promise<ApiResponse<any[]>> => {
+    async (_event, filters: TransactionFilters): Promise<ApiResponse<any>> => {
       try {
-        const transactions = TransactionService.getTransactions(filters);
-        return { success: true, data: transactions };
+        const result = TransactionService.getTransactions(filters);
+        return { success: true, data: result.data, total: result.total };
       } catch (error) {
         console.error("Get transactions error:", error);
         return { success: false, error: "فشل جلب العمليات" };
@@ -74,6 +74,33 @@ export function registerTransactionHandlers() {
       }
     }
   );
+
+  ipcMain.handle(
+    "transaction:getTrend",
+    async (_event, startDate: string, endDate: string): Promise<ApiResponse<any>> => {
+      try {
+        const trend = TransactionService.getTrend(startDate, endDate);
+        return { success: true, data: trend };
+      } catch (error) {
+        console.error("Get trend error:", error);
+        return { success: false, error: "فشل في جلب توجهات الأرباح" };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "dashboard:getSmartAlerts",
+    async (_event): Promise<ApiResponse<any>> => {
+      try {
+        const alerts = TransactionService.getSmartAlerts();
+        return { success: true, data: alerts };
+      } catch (error) {
+        console.error("Get smart alerts error:", error);
+        return { success: false, error: "فشل في جلب التنبيهات" };
+      }
+    }
+  );
   
   console.log("Transaction handlers registered");
 }
+

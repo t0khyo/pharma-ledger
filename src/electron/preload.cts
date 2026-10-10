@@ -88,6 +88,7 @@ contextBridge.exposeInMainWorld("api", {
     add: (customer: any) => ipcRenderer.invoke("customers:add", customer),
     update: (id: number, customer: any) => ipcRenderer.invoke("customers:update", { id, customer }),
     delete: (id: number) => ipcRenderer.invoke("customers:delete", id),
+    getStats: (options?: any) => ipcRenderer.invoke("customers:get-stats", options),
   },
   transactions: {
     add: (input: any) => ipcRenderer.invoke("transaction:add", input),
@@ -95,5 +96,8 @@ contextBridge.exposeInMainWorld("api", {
     delete: (id: number) => ipcRenderer.invoke("transaction:delete", id),
     getStats: (filters: any) => ipcRenderer.invoke("transaction:getStats", filters),
     getDashboardStats: () => ipcRenderer.invoke("dashboard:getStats"),
+    getTrend: (startDate: string, endDate: string) => ipcRenderer.invoke("transaction:getTrend", startDate, endDate),
+    getSmartAlerts: () => ipcRenderer.invoke("dashboard:getSmartAlerts"),
   },
 });
+

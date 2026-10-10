@@ -107,3 +107,6 @@ CREATE INDEX IF NOT EXISTS idx_transactions_customer_id ON transactions(customer
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
 CREATE INDEX IF NOT EXISTS idx_transaction_items_transaction_id ON transaction_items(transaction_id);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_customer_deleted ON transactions(customer_id, is_deleted);
+

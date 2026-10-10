@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSensitive } from "@/contexts/SensitiveContext";
 import { toast } from "sonner";
-import type { Customer, CustomerInput } from "../../shared/types/customer.types";
+import type { Customer, CustomerInput, CustomerStats } from "../../shared/types/customer.types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import {
@@ -49,19 +49,43 @@ export default function Customers() {
   const [saving, setSaving] = useState(false);
   const [lateOnly, setLateOnly] = useState(false);
   const [lateDays, setLateDays] = useState(21);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [stats, setStats] = useState<CustomerStats>({
+    totalCustomers: 0,
+    totalDebts: 0,
+    totalBalances: 0,
+    netBalance: 0,
+  });
+  const itemsPerPage = 20;
 
   useEffect(() => {
     loadCustomers();
-  }, [search, sortBy, sortOrder, lateOnly, lateDays]);
+  }, [search, sortBy, sortOrder, lateOnly, lateDays, currentPage]);
+
+  const totalPages = Math.ceil(totalCustomers / itemsPerPage);
 
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const result = await window.api.customers.getAll({ search, sortBy, sortOrder, lateOnly, lateDays });
+      const [result, statsResult] = await Promise.all([
+        window.api.customers.getAll({ 
+          search, sortBy, sortOrder, lateOnly, lateDays,
+          limit: itemsPerPage,
+          offset: (currentPage - 1) * itemsPerPage
+        }),
+        window.api.customers.getStats({ search, lateOnly, lateDays })
+      ]);
+
       if (result.success && result.data) {
         setCustomers(result.data);
+        setTotalCustomers(result.total || 0);
       } else {
         toast.error("فشل في تحميل قائمة العملاء");
+      }
+
+      if (statsResult.success && statsResult.data) {
+        setStats(statsResult.data);
       }
     } catch (error) {
       console.error(error);
@@ -174,7 +198,7 @@ export default function Customers() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {customers.length}
+              {stats.totalCustomers}
             </div>
           </CardContent>
         </Card>
@@ -188,7 +212,7 @@ export default function Customers() {
               {!showSensitive ? (
                 <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
               ) : (
-                formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, -(c.balance || 0)), 0))
+                formatCurrency(stats.totalDebts)
               )}
             </div>
           </CardContent>
@@ -203,7 +227,7 @@ export default function Customers() {
               {!showSensitive ? (
                 <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
               ) : (
-                formatCurrency(customers.reduce((sum, c) => sum + Math.max(0, c.balance || 0), 0))
+                formatCurrency(stats.totalBalances)
               )}
             </div>
           </CardContent>
@@ -211,16 +235,16 @@ export default function Customers() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
-            <Wallet className={`h-4 w-4 ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-500" : customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0 ? "text-green-500" : "text-green-500"}`} />
+            <Wallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : "text-green-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${customers.reduce((sum, c) => sum + (c.balance || 0), 0) < 0 ? "text-red-600" : "text-green-600"}`}>
+            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : "text-green-600"}`}>
               {!showSensitive ? (
                 <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
               ) : (
-                customers.reduce((sum, c) => sum + (c.balance || 0), 0) > 0
-                  ? `- ${formatCurrency(customers.reduce((sum, c) => sum + (c.balance || 0), 0))}`
-                  : formatCurrency(Math.abs(customers.reduce((sum, c) => sum + (c.balance || 0), 0)))
+                stats.netBalance > 0
+                  ? `- ${formatCurrency(stats.netBalance)}`
+                  : formatCurrency(Math.abs(stats.netBalance))
               )}
             </div>
           </CardContent>
@@ -278,7 +302,15 @@ export default function Customers() {
                   <SortIcon column="name" />
                 </div>
               </TableHead>
-              <TableHead>رقم الهاتف</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => handleSort('phone')}
+              >
+                <div className="flex items-center">
+                  رقم الهاتف
+                  <SortIcon column="phone" />
+                </div>
+              </TableHead>
               <TableHead 
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => handleSort('balance')}
@@ -378,6 +410,35 @@ export default function Customers() {
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-sm text-muted-foreground">
+            عرض {(currentPage - 1) * itemsPerPage + 1} إلى {Math.min(currentPage * itemsPerPage, totalCustomers)} من أصل {totalCustomers} عميل
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              السابق
+            </Button>
+            <div className="text-sm font-medium">
+              صفحة {currentPage} من {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              التالي
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>

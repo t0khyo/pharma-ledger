@@ -12,3 +12,11 @@ export interface CustomerInput {
   phone?: string;
   notes?: string;
 }
+
+export interface CustomerStats {
+  totalCustomers: number;
+  totalDebts: number;
+  totalBalances: number;
+  netBalance: number;
+}
+

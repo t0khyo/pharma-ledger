@@ -4,6 +4,8 @@ import type {
   Transaction,
   TransactionFilters,
   TransactionStats,
+  DailyTrend,
+  SmartAlert,
 } from "../../shared/types/transaction.types.js";
 
 export class TransactionService {
@@ -85,10 +87,9 @@ export class TransactionService {
   /**
    * Get all transactions with optional filtering
    */
-  static getTransactions(filters: TransactionFilters): Transaction[] {
+  static getTransactions(filters: TransactionFilters): { data: Transaction[], total: number } {
     const db = getDatabaseConnection();
-    let query = `
-      SELECT t.*, c.name as customer_name 
+    let baseQuery = `
       FROM transactions t
       JOIN customers c ON t.customer_id = c.id
       WHERE t.is_deleted = 0
@@ -96,46 +97,57 @@ export class TransactionService {
     const params: any[] = [];
 
     if (filters.customerId) {
-      query += " AND t.customer_id = ?";
+      baseQuery += " AND t.customer_id = ?";
       params.push(filters.customerId);
     }
 
     if (filters.startDate) {
-      query += " AND date(t.date) >= date(?)";
+      baseQuery += " AND date(t.date) >= date(?)";
       params.push(filters.startDate);
     }
 
     if (filters.endDate) {
-      query += " AND date(t.date) <= date(?)";
+      baseQuery += " AND date(t.date) <= date(?)";
       params.push(filters.endDate);
     }
 
     if (filters.query) {
-      query += " AND c.name LIKE ?";
+      baseQuery += " AND c.name LIKE ?";
       params.push(`%${filters.query}%`);
     }
 
+    // Get total count
+    const countResult = db.prepare(`SELECT COUNT(*) as count ${baseQuery}`).get(...params) as { count: number };
+    const total = countResult.count;
+
+    // Build main query
+    let query = `SELECT t.*, c.name as customer_name ${baseQuery}`;
     query += " ORDER BY t.date DESC, t.created_at DESC";
+
+    if (filters.limit !== undefined) {
+      query += " LIMIT ?";
+      params.push(filters.limit);
+    }
+    
+    if (filters.offset !== undefined) {
+      query += " OFFSET ?";
+      params.push(filters.offset);
+    }
 
     const transactions = db.prepare(query).all(...params) as any[];
 
-    // Ideally we should batch load items or load on demand, 
-    // but for now let's load minimal item info (e.g. concatenated string) or just keep it simple.
-    // The requirement says "products(comma seperated)" for the table.
-    // Let's attach items for all loaded transactions.
-    
-    // Optimization: Get all item strings for these transactions
     if (transactions.length > 0) {
       const ids = transactions.map(t => t.id).join(",");
       const items = db.prepare(`SELECT * FROM transaction_items WHERE transaction_id IN (${ids})`).all() as any[];
       
-      return transactions.map(t => ({
+      const data = transactions.map(t => ({
         ...t,
         items: items.filter(i => i.transaction_id === t.id)
       }));
+      return { data, total };
     }
 
-    return [];
+    return { data: [], total };
   }
 
   /**
@@ -272,19 +284,18 @@ export class TransactionService {
     const customersResult = db.prepare("SELECT COUNT(*) as count FROM customers").get() as { count: number };
     const totalCustomers = customersResult.count || 0;
 
-    // 3. Monthly Income (Payments in current month)
-    const incomeResult = db.prepare(`
-        SELECT SUM(amount) as total 
+    // 3. Current Month Income & Expenses
+    const currentMonthResult = db.prepare(`
+        SELECT 
+            SUM(CASE WHEN type = 'payment' THEN amount ELSE 0 END) as monthlyIncome,
+            SUM(CASE WHEN type = 'debt' THEN amount ELSE 0 END) as monthlyExpenses
         FROM transactions 
-        WHERE type = 'payment' 
-        AND is_deleted = 0 
+        WHERE is_deleted = 0 
         AND date(date) >= date('now', 'start of month')
-    `).get() as { total: number };
-    const monthlyIncome = incomeResult.total || 0;
-
-    // 4. Total Companies
-    const companiesResult = db.prepare("SELECT COUNT(*) as count FROM company").get() as { count: number };
-    const totalCompanies = companiesResult.count || 0;
+    `).get() as { monthlyIncome: number, monthlyExpenses: number };
+    
+    const monthlyIncome = currentMonthResult.monthlyIncome || 0;
+    const monthlyExpenses = currentMonthResult.monthlyExpenses || 0;
 
     // 5. Recent Transactions
     const recentQuery = `
@@ -311,8 +322,85 @@ export class TransactionService {
         unpaidDebts,
         totalCustomers,
         monthlyIncome,
-        totalCompanies,
+        monthlyExpenses,
         recentTransactions: recent
     };
+  }
+
+  /**
+   * Get financial trend (Income vs Expenses) for a specific date range
+   */
+  static getTrend(startDate: string, endDate: string): DailyTrend[] {
+    const db = getDatabaseConnection();
+    
+    // Safety limit of 100 days to prevent infinite recursion if dates are wrong
+    const query = `
+      WITH RECURSIVE dates(date) AS (
+        SELECT ?
+        UNION ALL
+        SELECT date(date, '+1 day')
+        FROM dates
+        WHERE date < ? AND CAST(JULIANDAY(date) - JULIANDAY(?) AS INTEGER) < 100
+      )
+      SELECT 
+        d.date,
+        COALESCE(SUM(CASE WHEN t.type = 'payment' THEN t.amount ELSE 0 END), 0) as income,
+        COALESCE(SUM(CASE WHEN t.type = 'debt' THEN t.amount ELSE 0 END), 0) as expenses
+      FROM dates d
+      LEFT JOIN transactions t ON date(t.date) = d.date AND t.is_deleted = 0
+      GROUP BY d.date
+      ORDER BY d.date ASC;
+    `;
+    
+    return db.prepare(query).all(startDate, endDate, startDate) as DailyTrend[];
+  }
+
+  /**
+   * Get smart alerts for the dashboard
+   */
+  static getSmartAlerts(): SmartAlert[] {
+    const db = getDatabaseConnection();
+    const alerts: SmartAlert[] = [];
+
+    // Alert 1 (Old debts) removed as requested.
+
+    // Alert 2: High total debts (more than 10,000 EGP for example)
+    const unpaidDebtsQuery = `
+        SELECT 
+            COALESCE(SUM(CASE WHEN type = 'debt' THEN amount ELSE 0 END), 0) -
+            COALESCE(SUM(CASE WHEN type = 'payment' THEN amount ELSE 0 END), 0) as unpaid_debts
+        FROM transactions 
+        WHERE is_deleted = 0
+    `;
+    const unpaidDebtsResult = db.prepare(unpaidDebtsQuery).get() as { unpaid_debts: number };
+    if (unpaidDebtsResult && unpaidDebtsResult.unpaid_debts > 10000) {
+      alerts.push({
+        id: 'high-debts',
+        type: 'destructive',
+        message: `تنبيه: إجمالي الديون غير المسددة تجاوز 10,000 ج.م (${unpaidDebtsResult.unpaid_debts} ج.م)`,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    // Alert 3: 0 Income today (if it's after 12 PM)
+    const currentHour = new Date().getHours();
+    if (currentHour >= 12) {
+      const todayIncomeQuery = `
+        SELECT COALESCE(SUM(amount), 0) as income
+        FROM transactions
+        WHERE type = 'payment' AND is_deleted = 0 AND date(date) = date('now', 'localtime')
+      `;
+      const todayIncomeResult = db.prepare(todayIncomeQuery).get() as { income: number };
+      if (todayIncomeResult && todayIncomeResult.income === 0) {
+        alerts.push({
+          id: 'no-income',
+          type: 'default',
+          message: 'لم يتم تسجيل أي إيرادات اليوم حتى الآن.',
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    return alerts;
   }
 }

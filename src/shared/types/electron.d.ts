@@ -10,6 +10,7 @@ import { CreateCompanyDTO, Company } from "./company.types"; // Assuming company
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
+  total?: number;
   error?: string;
 }
 
@@ -51,8 +52,8 @@ export interface AuthApi {
 }
 
 import { EmailSettings, TestEmailSettings } from "./settings.types.js";
-import { Customer, CustomerInput } from "./customer.types.js";
-import { CreateTransactionInput, Transaction, TransactionFilters, TransactionStats, DashboardStats } from "./transaction.types.js";
+import { Customer, CustomerInput, CustomerStats } from "./customer.types.js";
+import { CreateTransactionInput, Transaction, TransactionFilters, TransactionStats, DashboardStats, DailyTrend, SmartAlert } from "./transaction.types.js";
 
 export interface SettingsApi {
   get: () => Promise<EmailSettings>;
@@ -65,15 +66,19 @@ export interface TransactionApi {
     add: (input: CreateTransactionInput) => Promise<ApiResponse<Transaction>>;
     getAll: (filters: TransactionFilters) => Promise<ApiResponse<Transaction[]>>;
     delete: (id: number) => Promise<ApiResponse<void>>;
+  getStats: (options?: { search?: string, lateOnly?: boolean, lateDays?: number }) => Promise<ApiResponse<CustomerStats>>;
     getStats: (filters: TransactionFilters) => Promise<ApiResponse<TransactionStats>>;
     getDashboardStats: () => Promise<ApiResponse<DashboardStats>>;
+    getTrend: (startDate: string, endDate: string) => Promise<ApiResponse<DailyTrend[]>>;
+    getSmartAlerts: () => Promise<ApiResponse<SmartAlert[]>>;
 }
 
 export interface CustomersApi {
-  getAll: (options?: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC', lateOnly?: boolean, lateDays?: number }) => Promise<ApiResponse<Customer[]>>;
+  getAll: (options?: { search?: string, sortBy?: string, sortOrder?: 'ASC' | 'DESC', lateOnly?: boolean, lateDays?: number, limit?: number, offset?: number }) => Promise<ApiResponse<Customer[]>>;
   add: (customer: CustomerInput) => Promise<ApiResponse<Customer>>;
   update: (id: number, customer: CustomerInput) => Promise<ApiResponse<void>>;
   delete: (id: number) => Promise<ApiResponse<void>>;
+  getStats: (options?: { search?: string, lateOnly?: boolean, lateDays?: number }) => Promise<ApiResponse<CustomerStats>>;
 }
 
 export interface ElectronApi {
@@ -92,3 +97,4 @@ declare global {
 }
 
 export {};
+

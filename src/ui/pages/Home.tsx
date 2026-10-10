@@ -3,6 +3,7 @@ import {
   IconCreditCard,
   IconUsers,
   IconTrendingUp,
+  IconTrendingDown,
   IconBuildings,
   IconLoader,
   IconInfoCircle,
@@ -15,36 +16,68 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useSensitive } from "@/contexts/SensitiveContext";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
-import type { DashboardStats } from "src/shared/types/transaction.types";
+import type { DashboardStats, DailyTrend, SmartAlert } from "src/shared/types/transaction.types";
 import { toast } from "sonner";
 import { formatNumber, formatCurrency } from "@/utils/formatters";
+import { TrendChart } from "@/components/dashboard/TrendChart";
+import { SmartAlerts } from "@/components/dashboard/SmartAlerts";
+import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
+import { MonthSelector } from "@/components/financial/MonthSelector";
 
 export default function Home() {
   const { user, hasRole } = useAuth();
   const navigate = useNavigate();
   const { showSensitive } = useSensitive();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [trends, setTrends] = useState<DailyTrend[]>([]);
+  const [alerts, setAlerts] = useState<SmartAlert[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const getDateRange = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const start = new Date(year, month, 9);
+    const end = new Date(year, month + 1, 8);
+    const formatLocalDate = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    return { startISO: formatLocalDate(start), endISO: formatLocalDate(end) };
+  };
 
   useEffect(() => {
     loadDashboardStats();
-  }, []);
+  }, [selectedDate]);
 
   const loadDashboardStats = async () => {
     try {
-      const result = await window.api.transactions.getDashboardStats();
-      if (result.success) {
-        setStats(result.data || null);
+      const range = getDateRange(selectedDate);
+      const statsResult = await window.api.transactions.getDashboardStats().catch(() => ({ success: false, data: null }));
+      const trendsResult = await window.api.transactions.getTrend(range.startISO, range.endISO).catch(() => ({ success: false, data: [] }));
+      const alertsResult = await window.api.transactions.getSmartAlerts().catch(() => ({ success: false, data: [] }));
+
+      if (statsResult.success) {
+        setStats(statsResult.data || null);
       } else {
         toast.error("فشل تحميل البيانات");
       }
+
+      if (trendsResult.success) {
+        setTrends(trendsResult.data || []);
+      }
+
+      if (alertsResult.success) {
+        setAlerts(alertsResult.data || []);
+      }
+
     } catch (error) {
       console.error(error);
     } finally {
@@ -69,23 +102,27 @@ export default function Home() {
       icon: IconUsers,
       color: "text-blue-500",
       adminOnly: false,
+      sensitive: true,
     },
     {
       title: "إيرادات الشهر",
       description: "مجموع الدخل والأموال التي تم تحصيلها خلال الشهر الحالي",
       value: stats ? formatCurrency(stats.monthlyIncome) : "-",
       icon: IconTrendingUp,
+  IconTrendingDown,
       color: "text-green-500",
       adminOnly: true,
       sensitive: true,
     },
     {
-      title: "عدد الشركات",
-      description: "إجمالي عدد الشركات التي تتعامل معها",
-      value: stats ? formatNumber(stats.totalCompanies) : "-",
-      icon: IconBuildings,
+      title: "مصروفات الشهر",
+      description: "إجمالي المصروفات (الديون) المسجلة خلال الشهر الحالي",
+      value: stats ? formatCurrency(stats.monthlyExpenses) : "-",
+      icon: IconTrendingUp,
+  IconTrendingDown, // maybe something else? I'll use IconBuildings for now, actually they use icons imported at the top. Let's see what's available. IconBuildings was used. Let's stick with IconBuildings or maybe we need to check imports.
       color: "text-purple-500",
-      adminOnly: false,
+      adminOnly: true,
+      sensitive: true,
     },
   ];
 
@@ -205,271 +242,42 @@ export default function Home() {
         </TooltipProvider>
       )}
 
-      {/* Main Content Grid */}
-      <div className={`grid gap-3 ${hasRole("admin") ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
-        {/* Donut Chart Section - Takes 1 column */}
-        {hasRole("admin") && stats && (
-          <Card className="border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">التوزيع المالي</CardTitle>
-              <CardDescription className="text-xs">نسبة الديون والمدفوعات</CardDescription>
-            </CardHeader>
-            <CardContent className="pb-4">
-              {(() => {
-                const total = stats.monthlyIncome + stats.unpaidDebts;
-                const paidPercentage = total > 0 ? (stats.monthlyIncome / total) * 100 : 0;
-                const debtPercentage = total > 0 ? (stats.unpaidDebts / total) * 100 : 0;
-                
-                // SVG donut chart calculations
-                const size = 180;
-                const strokeWidth = 24;
-                const radius = (size - strokeWidth) / 2;
-                const circumference = 2 * Math.PI * radius;
-                const gapDegrees = 0; // Larger gap between segments
-                const gapPercentage = (gapDegrees / 360) * 100;
-                
-                return (
-                  <div className="flex flex-col items-center gap-6">
-                    {/* Chart Container */}
-                    <div className="relative w-full flex justify-center">
-                      <div className="relative" style={{ width: size, height: size }}>
-                        <svg width={size} height={size} className="transform -rotate-90">
-                          {/* Background circle */}
-                          <circle
-                            cx={size / 2}
-                            cy={size / 2}
-                            r={radius}
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={strokeWidth}
-                            className="text-muted/20"
-                          />
-                          
-                          {/* Green segment (payments) - no glow */}
-                          {paidPercentage > 0 && (
-                            <circle
-                              cx={size / 2}
-                              cy={size / 2}
-                              r={radius}
-                              fill="none"
-                              stroke="#27c68b"
-                              strokeWidth={strokeWidth}
-                              strokeDasharray={`${((paidPercentage - gapPercentage) / 100) * circumference} ${circumference}`}
-                              strokeDashoffset={0}
-                              strokeLinecap="butt"
-                              className="transition-all duration-500"
-                            />
-                          )}
-                          
-                          {/* Pink segment (debts) - no glow */}
-                          {debtPercentage > 0 && (
-                            <circle
-                              cx={size / 2}
-                              cy={size / 2}
-                              r={radius}
-                              fill="none"
-                              stroke="#ee6875"
-                              strokeWidth={strokeWidth}
-                              strokeDasharray={`${((debtPercentage - gapPercentage) / 100) * circumference} ${circumference}`}
-                              strokeDashoffset={-((paidPercentage + gapPercentage) / 100) * circumference}
-                              strokeLinecap="butt"
-                              className="transition-all duration-500"
-                            />
-                          )}
-                        </svg>
-                        {/* Center text - Total */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <p className="text-xs text-muted-foreground mb-1">الإجمالي</p>
-                          <p className="text-xl font-bold">
-                            {showSensitive ? formatCurrency(total) : '***'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Legend - Bottom */}
-                    <div className="w-full grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#27c68b' }}></div>
-                          <span className="text-xs text-muted-foreground">تسديدات</span>
-                        </div>
-                        <p className="text-sm font-semibold" style={{ color: '#27c68b' }}>
-                          {showSensitive ? formatCurrency(stats.monthlyIncome) : '***'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {Math.round(paidPercentage)}%
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#ee6875' }}></div>
-                          <span className="text-xs text-muted-foreground">ديون</span>
-                        </div>
-                        <p className="text-sm font-semibold" style={{ color: '#ee6875' }}>
-                          {showSensitive ? formatCurrency(stats.unpaidDebts) : '***'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {Math.round(debtPercentage)}%
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Recent Activities - Takes 2 columns for admin */}
-        <Card className={`${hasRole("admin") ? "lg:col-span-2" : ""} border-border/50`}>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base">النشاط الأخير</CardTitle>
-                <CardDescription className="text-xs">آخر 5 عمليات</CardDescription>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate("/debts")}
-                className="text-xs h-7"
-              >
-                عرض الكل ←
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="space-y-1.5">
-              {stats?.recentTransactions && stats.recentTransactions.length > 0 ? (
-                stats.recentTransactions.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-2.5 p-2 rounded-md hover:bg-muted/50 transition-colors"
-                  >
-                    <div className={`p-1 rounded-md ${activity.type === 'debt' ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
-                      {activity.type === 'debt' ? (
-                        <IconCreditCard className="h-3 w-3 text-red-500" />
-                      ) : (
-                        <IconTrendingUp className="h-3 w-3 text-green-500" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold">{activity.customer_name}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {activity.type === 'debt' ? (
-                            activity.items && activity.items.length > 0 
-                            ? activity.items.map((i: any) => i.product_name).join('، ')
-                            : (activity.notes || 'بدون تفاصيل')
-                        ) : (
-                            // Payment type - show payment method and notes
-                            (() => {
-                              const methodText = activity.payment_method === 'cash' ? 'نقداً' :
-                                               activity.payment_method === 'instapay' ? 'إنستا باي' :
-                                               activity.payment_method === 'e-wallet' ? 'محفظة إلكترونية' :
-                                               activity.payment_method || '';
-                              
-                              if (methodText && activity.notes) {
-                                return `${methodText} - ${activity.notes}`;
-                              } else if (methodText) {
-                                return methodText;
-                              } else if (activity.notes) {
-                                return activity.notes;
-                              } else {
-                                return 'دفع';
-                              }
-                            })()
-                        )}
-                      </p>
-                    </div>
-                    <div className="text-left">
-                      <p className={`text-xs font-bold ${activity.type === 'debt' ? 'text-red-500' : 'text-green-500'}`}>
-                        {formatCurrency(activity.amount)}
-                      </p>
-                      <p className="text-xs text-muted-foreground dir-ltr">
-                        {format(new Date(activity.date), "dd/MM hh:mm", { locale: ar })}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-muted-foreground py-4">
-                  <IconLoader className="h-5 w-5 mx-auto mb-1 opacity-50" />
-                  <p className="text-xs">لا توجد عمليات</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions (Employee) */}
-        {!hasRole("admin") && (
-          <Card className="border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">إجراءات سريعة</CardTitle>
-            </CardHeader>
-            <CardContent className="pb-2">
-              <div className="grid gap-3 grid-cols-2">
-                {quickActionCards}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Quick Actions (Admin) */}
+      {/* Charts Section */}
       {hasRole("admin") && (
+        <div className="w-full space-y-3">
+          <MonthSelector
+            selectedDate={selectedDate}
+            onMonthChange={setSelectedDate}
+          />
+          <TrendChart data={trends} loading={loading} />
+        </div>
+      )}
+
+      {/* Bottom Grid */}
+      <div className={`grid gap-3 lg:grid-cols-2`}>
+        {/* Activity Timeline - Takes 1 column */}
+        <div>
+          <ActivityTimeline 
+            transactions={stats?.recentTransactions || []} 
+            loading={loading} 
+          />
+        </div>
+
+        {/* Quick Actions */}
         <Card className="border-border/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">إجراءات سريعة</CardTitle>
           </CardHeader>
           <CardContent className="pb-2">
-            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+            <div className="grid gap-3 grid-cols-2">
               {quickActionCards}
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Financial Overview - Compact */}
-      {hasRole("admin") && stats && (
-        <Card className="border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">ملخص مالي</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">الإيرادات</p>
-                <p className="text-lg font-bold text-green-600">
-                  {showSensitive ? formatCurrency(stats.monthlyIncome) : '******'}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">الديون</p>
-                <p className="text-lg font-bold text-red-600">
-                  {showSensitive ? formatCurrency(stats.unpaidDebts) : '******'}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">العملاء</p>
-                <p className="text-lg font-bold text-blue-600">
-                  {formatNumber(stats.totalCustomers)}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">الشركات</p>
-                <p className="text-lg font-bold text-purple-600">
-                  {formatNumber(stats.totalCompanies)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      </div>
     </div>
   );
 }
+
+
+

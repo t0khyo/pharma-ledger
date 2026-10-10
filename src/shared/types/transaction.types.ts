@@ -44,12 +44,28 @@ export interface TransactionFilters {
   endDate?: string;
   customerId?: number;
   query?: string; // Search by customer name
+  limit?: number;
+  offset?: number;
 }
 
 export interface DashboardStats {
     unpaidDebts: number;
     totalCustomers: number;
     monthlyIncome: number;
-    totalCompanies: number;
+    monthlyExpenses: number;
     recentTransactions: Transaction[];
 }
+
+export interface DailyTrend {
+  date: string;
+  income: number;
+  expenses: number;
+}
+
+export interface SmartAlert {
+  id: string;
+  type: 'warning' | 'destructive' | 'default';
+  message: string;
+  createdAt: string;
+}
+

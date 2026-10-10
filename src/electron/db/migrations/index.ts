@@ -7,6 +7,7 @@ import { createCustomersTable } from "./005_create_customers_table.js";
 import { addAvatarToUsers } from "./006_add_avatar_to_users.js";
 import { createTransactionsTable } from "./007_create_transactions_table.js";
 import { addNormalizedNameToCustomers } from "./008_add_normalized_name_to_customers.js";
+import { addTransactionCompositeIndex } from "./009_add_transaction_composite_index.js";
 
 export function initDb() {
   // Get the shared database connection
@@ -21,5 +22,7 @@ export function initDb() {
   addAvatarToUsers(db);
   createTransactionsTable(db);
   addNormalizedNameToCustomers(db);
+  addTransactionCompositeIndex(db);
   console.log("Migrations complete.");
 }
+

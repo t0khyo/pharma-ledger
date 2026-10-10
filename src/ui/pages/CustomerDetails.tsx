@@ -289,8 +289,8 @@ export default function CustomerDetails() {
                         <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                             transaction.type === "payment"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : "bg-red-50 text-red-700 border-red-200"
+                            ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
+                            : "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
                         }`}
                         >
                         {transaction.type === "payment" ? "تسديد" : "دين"}
@@ -300,10 +300,12 @@ export default function CustomerDetails() {
                         {formatCurrency(transaction.amount)}
                     </TableCell>
                     <TableCell className="text-xs whitespace-pre-wrap break-words">
-                         {transaction.type === 'debt' && transaction.items && transaction.items.length > 0 
-                            ? transaction.items.map(i => i.product_name).join(", ") 
-                            : (transaction.payment_method === 'cash' ? 'نقدي' : transaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية')
-                         }
+                        {transaction.type === 'debt'
+                          ? (transaction.items && transaction.items.length > 0 ? transaction.items.map(i => i.product_name).join(", ") : "-")
+                          : (transaction.payment_method === 'cash' ? 'نقدي' : 
+                             transaction.payment_method === 'instapay' ? 'InstaPay' : 
+                             transaction.payment_method === 'e-wallet' ? 'محفظة إلكترونية' : "-")
+                        }
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-pre-wrap break-words">
                         {transaction.notes || "-"}
@@ -397,8 +399,8 @@ export default function CustomerDetails() {
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                             transaction.type === "payment"
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-red-50 text-red-700 border-red-200"
+                              ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
+                              : "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
                           }`}
                         >
                           {transaction.type === "payment" ? "تسديد" : "دين"}
@@ -408,9 +410,11 @@ export default function CustomerDetails() {
                         {formatCurrency(transaction.amount)}
                       </TableCell>
                       <TableCell className="text-xs whitespace-pre-wrap break-words">
-                        {transaction.type === 'debt' && transaction.items && transaction.items.length > 0 
-                          ? transaction.items.map(i => i.product_name).join(", ") 
-                          : (transaction.payment_method === 'cash' ? 'نقدي' : transaction.payment_method === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية')
+                        {transaction.type === 'debt'
+                          ? (transaction.items && transaction.items.length > 0 ? transaction.items.map(i => i.product_name).join(", ") : "-")
+                          : (transaction.payment_method === 'cash' ? 'نقدي' : 
+                             transaction.payment_method === 'instapay' ? 'InstaPay' : 
+                             transaction.payment_method === 'e-wallet' ? 'محفظة إلكترونية' : "-")
                         }
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground whitespace-pre-wrap break-words">
