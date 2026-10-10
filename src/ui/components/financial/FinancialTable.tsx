@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Pencil, Check, X } from "lucide-react";
 import type { Company } from "src/shared/types/company.types";
 import type { DailyFinancialRow } from "src/shared/types/financial.types";
@@ -124,10 +125,10 @@ export function FinancialTable({
         : tempData.expenses[field] || 0;
 
       return (
-        <input
+        <Input
           type="number"
           min="0"
-          className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary text-right"
+          className="w-full h-8 text-right px-2"
           value={currentValue || ""}
           onChange={(e) => handleInputChange(field, e.target.value)}
           autoFocus={field === "income"}

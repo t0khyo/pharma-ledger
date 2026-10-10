@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SensitiveProvider } from "@/contexts/SensitiveContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import Login from "@/pages/Login";
@@ -16,53 +17,55 @@ import Profile from "@/pages/Profile";
 function App() {
   return (
     <AuthProvider>
-      <HashRouter>
-        <Routes>
-          {/* Public route */}
-          <Route path="/login" element={<Login />} />
+      <SensitiveProvider>
+        <HashRouter>
+          <Routes>
+            {/* Public route */}
+            <Route path="/login" element={<Login />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Home />} />
-            <Route path="debts" element={<Debts />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="customers/:id" element={<CustomerDetails />} />
-            <Route path="companies" element={<Companies />} />
-            
-            {/* Admin-only route */}
+            {/* Protected routes */}
             <Route
-              path="reports"
+              path="/"
               element={
-                <ProtectedRoute requiredRole="admin">
-                  <FinancialReports />
+                <ProtectedRoute>
+                  <Layout />
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route index element={<Home />} />
+              <Route path="debts" element={<Debts />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="customers/:id" element={<CustomerDetails />} />
+              <Route path="companies" element={<Companies />} />
+              
+              {/* Admin-only route */}
+              <Route
+                path="reports"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <FinancialReports />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="settings"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="settings"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
 
 
-            <Route path="profile" element={<Profile />} />
-          </Route>
+              <Route path="profile" element={<Profile />} />
+            </Route>
 
-          {/* Catch all - redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </HashRouter>
+            {/* Catch all - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </HashRouter>
+      </SensitiveProvider>
       <Toaster />
     </AuthProvider>
   );

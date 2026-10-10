@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, EyeOff, ArrowUp, ArrowDown, ArrowUpDown, Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown, Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useSensitive } from "@/contexts/SensitiveContext";
 import { toast } from "sonner";
 import type { Customer, CustomerInput } from "../../shared/types/customer.types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +37,7 @@ import { formatCurrency } from "@/utils/formatters";
 
 export default function Customers() {
   const navigate = useNavigate();
-  const [showSensitive, setShowSensitive] = useState(false);
+  const { showSensitive } = useSensitive();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -156,19 +158,6 @@ export default function Customers() {
           <p className="text-muted-foreground mt-2">إدارة بيانات العملاء وتفاصيل التواصل</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowSensitive(!showSensitive)}
-            title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
-            className="h-10 w-10 rounded-lg"
-          >
-            {showSensitive ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </Button>
           <Button onClick={() => handleOpenDialog()} className="gap-2">
             <Plus className="w-4 h-4" />
             إضافة عميل
@@ -251,15 +240,14 @@ export default function Customers() {
         
         {/* Late Debts Filter */}
         <div className="flex items-center gap-3 p-2 rounded-lg border bg-muted/30">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-2">
+            <Switch
+              id="late-debts-filter"
               checked={lateOnly}
-              onChange={(e) => setLateOnly(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+              onCheckedChange={setLateOnly}
             />
-            <span className="text-sm font-medium">ديون متأخرة فقط</span>
-          </label>
+            <Label htmlFor="late-debts-filter" className="cursor-pointer text-sm font-medium">ديون متأخرة فقط</Label>
+          </div>
           {lateOnly && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">أكثر من</span>

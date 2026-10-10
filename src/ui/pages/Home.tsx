@@ -4,8 +4,6 @@ import {
   IconUsers,
   IconTrendingUp,
   IconBuildings,
-  IconEye,
-  IconEyeOff,
   IconLoader,
 } from "@tabler/icons-react";
 import {
@@ -18,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useSensitive } from "@/contexts/SensitiveContext";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -28,7 +27,7 @@ import { formatNumber, formatCurrency } from "@/utils/formatters";
 export default function Home() {
   const { user, hasRole } = useAuth();
   const navigate = useNavigate();
-  const [showSensitive, setShowSensitive] = useState(false);
+  const { showSensitive } = useSensitive();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -97,51 +96,47 @@ export default function Home() {
     );
   }
 
-  const quickActionButtons = (
+  const quickActionCards = (
     <>
-      <Button 
-        variant="outline" 
-        className="h-20 flex-col gap-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 hover:border-red-300 dark:hover:border-red-800 transition-all rounded-lg group" 
+      <Card 
+        className="h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 dark:hover:border-red-800 transition-all rounded-lg group" 
         onClick={() => navigate("/debts")}
       >
-        <div className="p-1.5 rounded-md bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
-          <IconCreditCard className="h-4 w-4" />
+        <div className="p-2 rounded-md bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+          <IconCreditCard className="h-5 w-5 text-red-600" />
         </div>
-        <span className="font-medium text-xs">الديون</span>
-      </Button>
+        <span className="font-medium text-sm text-red-700 dark:text-red-400">الديون</span>
+      </Card>
       
-      <Button 
-        variant="outline" 
-        className="h-20 flex-col gap-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 hover:border-blue-300 dark:hover:border-blue-800 transition-all rounded-lg group" 
+      <Card 
+        className="h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-800 transition-all rounded-lg group" 
         onClick={() => navigate("/customers")}
       >
-        <div className="p-1.5 rounded-md bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
-          <IconUsers className="h-4 w-4" />
+        <div className="p-2 rounded-md bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
+          <IconUsers className="h-5 w-5 text-blue-600" />
         </div>
-        <span className="font-medium text-xs">العملاء</span>
-      </Button>
+        <span className="font-medium text-sm text-blue-700 dark:text-blue-400">العملاء</span>
+      </Card>
       
-      <Button 
-        variant="outline" 
-        className="h-20 flex-col gap-1.5 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 hover:border-green-300 dark:hover:border-green-800 transition-all rounded-lg group" 
+      <Card 
+        className="h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-green-50 dark:hover:bg-green-950/30 hover:border-green-300 dark:hover:border-green-800 transition-all rounded-lg group" 
         onClick={() => navigate("/reports")}
       >
-        <div className="p-1.5 rounded-md bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-          <IconTrendingUp className="h-4 w-4" />
+        <div className="p-2 rounded-md bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+          <IconTrendingUp className="h-5 w-5 text-green-600" />
         </div>
-        <span className="font-medium text-xs">التقارير</span>
-      </Button>
+        <span className="font-medium text-sm text-green-700 dark:text-green-400">التقارير</span>
+      </Card>
       
-      <Button
-        variant="outline"
-        className="h-20 flex-col gap-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 hover:border-purple-300 dark:hover:border-purple-800 transition-all rounded-lg group"
+      <Card
+        className="h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:border-purple-300 dark:hover:border-purple-800 transition-all rounded-lg group"
         onClick={() => navigate("/companies")}
       >
-        <div className="p-1.5 rounded-md bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-          <IconBuildings className="h-4 w-4" />
+        <div className="p-2 rounded-md bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+          <IconBuildings className="h-5 w-5 text-purple-600" />
         </div>
-        <span className="font-medium text-xs">الشركات</span>
-      </Button>
+        <span className="font-medium text-sm text-purple-700 dark:text-purple-400">الشركات</span>
+      </Card>
     </>
   );
 
@@ -159,22 +154,6 @@ export default function Home() {
                 نظرة عامة على نشاط دفتر المحاسبة
               </CardDescription>
             </div>
-
-            {hasRole("admin") && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowSensitive(!showSensitive)}
-                title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
-                className="h-8 w-8 rounded-lg"
-              >
-                {showSensitive ? (
-                  <IconEyeOff className="h-3.5 w-3.5" />
-                ) : (
-                  <IconEye className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            )}
           </div>
         </CardHeader>
       </Card>
@@ -412,8 +391,8 @@ export default function Home() {
               <CardTitle className="text-base">إجراءات سريعة</CardTitle>
             </CardHeader>
             <CardContent className="pb-2">
-              <div className="grid gap-2 grid-cols-2">
-                {quickActionButtons}
+              <div className="grid gap-3 grid-cols-2">
+                {quickActionCards}
               </div>
             </CardContent>
           </Card>
@@ -427,8 +406,8 @@ export default function Home() {
             <CardTitle className="text-base">إجراءات سريعة</CardTitle>
           </CardHeader>
           <CardContent className="pb-2">
-            <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
-              {quickActionButtons}
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+              {quickActionCards}
             </div>
           </CardContent>
         </Card>

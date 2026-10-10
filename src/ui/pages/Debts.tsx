@@ -29,7 +29,6 @@ import {
   IconSearch,
   IconTrash,
   IconEye,
-  IconEyeOff,
   IconDotsVertical,
   IconArrowUpRight,
   IconInfoCircle,
@@ -44,6 +43,7 @@ import { ar } from "date-fns/locale";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { formatCurrency } from "@/utils/formatters";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSensitive } from "@/contexts/SensitiveContext";
 
 export default function Debts() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -55,7 +55,7 @@ export default function Debts() {
   });
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSensitive, setShowSensitive] = useState(false);
+  const { showSensitive } = useSensitive();
 
 
   // Dialog states
@@ -131,18 +131,6 @@ export default function Debts() {
           <h1 className="text-3xl font-bold">سجل الديون</h1>
           <p className="text-muted-foreground">إدارة ديون وتسديدات العملاء</p>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setShowSensitive(!showSensitive)}
-          title={showSensitive ? "إخفاء القيم" : "إظهار القيم"}
-        >
-          {showSensitive ? (
-            <IconEyeOff className="h-4 w-4" />
-          ) : (
-            <IconEye className="h-4 w-4" />
-          )}
-        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -187,13 +175,15 @@ export default function Debts() {
               صافي الرصيد
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     type="button"
                     aria-label="شرح صافي الرصيد"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
+                    className="h-5 w-5 text-muted-foreground hover:text-foreground"
                   >
                     <IconInfoCircle className="h-3.5 w-3.5" />
-                  </button>
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top" align="start">
                   صافي الرصيد = إجمالي التسديدات - إجمالي الديون. الأخضر مع علامة (-) يعني رصيداً لصالح العملاء، والأحمر بدون علامة يعني ديناً مستحقاً.
