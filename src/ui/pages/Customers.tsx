@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown, Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSensitive } from "@/contexts/SensitiveContext";
 import { toast } from "sonner";
-import type { Customer, CustomerInput, CustomerStats } from "../../shared/types/customer.types";
+import type { Customer, CustomerInput } from "../../shared/types/customer.types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import {
@@ -38,8 +39,6 @@ import { formatCurrency } from "@/utils/formatters";
 export default function Customers() {
   const navigate = useNavigate();
   const { showSensitive } = useSensitive();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
@@ -50,24 +49,12 @@ export default function Customers() {
   const [lateOnly, setLateOnly] = useState(false);
   const [lateDays, setLateDays] = useState(21);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalCustomers, setTotalCustomers] = useState(0);
-  const [stats, setStats] = useState<CustomerStats>({
-    totalCustomers: 0,
-    totalDebts: 0,
-    totalBalances: 0,
-    netBalance: 0,
-  });
+
   const itemsPerPage = 20;
 
-  useEffect(() => {
-    loadCustomers();
-  }, [search, sortBy, sortOrder, lateOnly, lateDays, currentPage]);
-
-  const totalPages = Math.ceil(totalCustomers / itemsPerPage);
-
-  const loadCustomers = async () => {
-    try {
-      setLoading(true);
+  const { data: customerData, isLoading: loading, refetch: loadCustomers } = useQuery({
+    queryKey: ['customers', { search, sortBy, sortOrder, lateOnly, lateDays, currentPage }],
+    queryFn: async () => {
       const [result, statsResult] = await Promise.all([
         window.api.customers.getAll({ 
           search, sortBy, sortOrder, lateOnly, lateDays,
@@ -76,26 +63,28 @@ export default function Customers() {
         }),
         window.api.customers.getStats({ search, lateOnly, lateDays })
       ]);
-
-      if (result.success && result.data) {
-        setCustomers(result.data);
-        setTotalCustomers(result.total || 0);
-      } else {
-        toast.error("فشل في تحميل قائمة العملاء");
-      }
-
-      if (statsResult.success && statsResult.data) {
-        setStats(statsResult.data);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("حدث خطأ أثناء تحميل البيانات");
-    } finally {
-      setLoading(false);
+      
+      if (!result.success) throw new Error("Failed to fetch customers");
+      
+      return {
+        customers: result.data || [],
+        totalCustomers: result.total || 0,
+        stats: statsResult.data || {
+          totalCustomers: 0,
+          totalDebts: 0,
+          totalBalances: 0,
+          netBalance: 0,
+        }
+      };
     }
-  };
+  });
 
-  const handleOpenDialog = (customer?: Customer) => {
+  const customers = customerData?.customers || [];
+  const totalCustomers = customerData?.totalCustomers || 0;
+  const stats = customerData?.stats || { totalCustomers: 0, totalDebts: 0, totalBalances: 0, netBalance: 0 };
+  const totalPages = Math.ceil(totalCustomers / itemsPerPage);
+
+const handleOpenDialog = (customer?: Customer) => {
     if (customer) {
       setEditingCustomer(customer);
       setFormData({
@@ -487,3 +476,6 @@ export default function Customers() {
     </div>
   );
 }
+
+
+

@@ -291,7 +291,7 @@ export class TransactionService {
             SUM(CASE WHEN type = 'debt' THEN amount ELSE 0 END) as monthlyExpenses
         FROM transactions 
         WHERE is_deleted = 0 
-        AND date(date) >= date('now', 'start of month')
+        AND date(date, 'localtime') >= date('now', 'localtime', 'start of month')
     `).get() as { monthlyIncome: number, monthlyExpenses: number };
     
     const monthlyIncome = currentMonthResult.monthlyIncome || 0;
@@ -347,7 +347,7 @@ export class TransactionService {
         COALESCE(SUM(CASE WHEN t.type = 'payment' THEN t.amount ELSE 0 END), 0) as income,
         COALESCE(SUM(CASE WHEN t.type = 'debt' THEN t.amount ELSE 0 END), 0) as expenses
       FROM dates d
-      LEFT JOIN transactions t ON date(t.date) = d.date AND t.is_deleted = 0
+      LEFT JOIN transactions t ON date(t.date, 'localtime') = d.date AND t.is_deleted = 0
       GROUP BY d.date
       ORDER BY d.date ASC;
     `;

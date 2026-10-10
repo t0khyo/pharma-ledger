@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -14,9 +15,12 @@ import Companies from "@/pages/Companies";
 import Settings from "@/pages/Settings";
 import Profile from "@/pages/Profile";
 
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60000, refetchOnWindowFocus: false } } });
+
 function App() {
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <SensitiveProvider>
         <HashRouter>
           <Routes>
@@ -68,7 +72,9 @@ function App() {
       </SensitiveProvider>
       <Toaster />
     </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
 export default App;
+

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, parseISO } from "date-fns";
 import { ar } from "date-fns/locale";
 import type { DailyTrend } from "src/shared/types/transaction.types";
@@ -114,3 +114,4 @@ export function TrendChart({ data, loading }: TrendChartProps) {
     </Card>
   );
 }
+

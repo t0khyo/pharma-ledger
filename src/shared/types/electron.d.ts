@@ -66,7 +66,6 @@ export interface TransactionApi {
     add: (input: CreateTransactionInput) => Promise<ApiResponse<Transaction>>;
     getAll: (filters: TransactionFilters) => Promise<ApiResponse<Transaction[]>>;
     delete: (id: number) => Promise<ApiResponse<void>>;
-  getStats: (options?: { search?: string, lateOnly?: boolean, lateDays?: number }) => Promise<ApiResponse<CustomerStats>>;
     getStats: (filters: TransactionFilters) => Promise<ApiResponse<TransactionStats>>;
     getDashboardStats: () => Promise<ApiResponse<DashboardStats>>;
     getTrend: (startDate: string, endDate: string) => Promise<ApiResponse<DailyTrend[]>>;
@@ -79,6 +78,7 @@ export interface CustomersApi {
   update: (id: number, customer: CustomerInput) => Promise<ApiResponse<void>>;
   delete: (id: number) => Promise<ApiResponse<void>>;
   getStats: (options?: { search?: string, lateOnly?: boolean, lateDays?: number }) => Promise<ApiResponse<CustomerStats>>;
+
 }
 
 export interface ElectronApi {
@@ -97,4 +97,6 @@ declare global {
 }
 
 export {};
+
+
 

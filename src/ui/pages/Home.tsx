@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   IconCreditCard,
   IconUsers,
@@ -20,11 +21,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useSensitive } from "@/contexts/SensitiveContext";
 import { useNavigate } from "react-router-dom";
-import type { DashboardStats, DailyTrend, SmartAlert } from "src/shared/types/transaction.types";
-import { toast } from "sonner";
 import { formatNumber, formatCurrency } from "@/utils/formatters";
 import { TrendChart } from "@/components/dashboard/TrendChart";
-import { SmartAlerts } from "@/components/dashboard/SmartAlerts";
 import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
 import { MonthSelector } from "@/components/financial/MonthSelector";
 
@@ -32,10 +30,6 @@ export default function Home() {
   const { user, hasRole } = useAuth();
   const navigate = useNavigate();
   const { showSensitive } = useSensitive();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [trends, setTrends] = useState<DailyTrend[]>([]);
-  const [alerts, setAlerts] = useState<SmartAlert[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -53,39 +47,29 @@ export default function Home() {
     return { startISO: formatLocalDate(start), endISO: formatLocalDate(end) };
   };
 
-  useEffect(() => {
-    loadDashboardStats();
-  }, [selectedDate]);
 
-  const loadDashboardStats = async () => {
-    try {
-      const range = getDateRange(selectedDate);
-      const statsResult = await window.api.transactions.getDashboardStats().catch(() => ({ success: false, data: null }));
-      const trendsResult = await window.api.transactions.getTrend(range.startISO, range.endISO).catch(() => ({ success: false, data: [] }));
-      const alertsResult = await window.api.transactions.getSmartAlerts().catch(() => ({ success: false, data: [] }));
+  const range = getDateRange(selectedDate);
 
-      if (statsResult.success) {
-        setStats(statsResult.data || null);
-      } else {
-        toast.error("فشل تحميل البيانات");
-      }
-
-      if (trendsResult.success) {
-        setTrends(trendsResult.data || []);
-      }
-
-      if (alertsResult.success) {
-        setAlerts(alertsResult.data || []);
-      }
-
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  const { data: stats, isLoading: isStatsLoading } = useQuery({
+    queryKey: ['dashboardStats', range.startISO, range.endISO],
+    queryFn: async () => {
+      const res = await window.api.transactions.getDashboardStats();
+      if (!res.success) throw new Error("Failed to fetch stats");
+      return res.data;
     }
-  };
+  });
 
-  const statCards = [
+  const { data: trends = [], isLoading: isTrendsLoading } = useQuery({
+    queryKey: ['dashboardTrends', range.startISO, range.endISO],
+    queryFn: async () => {
+      const res = await window.api.transactions.getTrend(range.startISO, range.endISO);
+      if (!res.success) throw new Error("Failed to fetch trends");
+      return res.data || [];
+    }
+  });
+
+  const loading = isStatsLoading || isTrendsLoading;
+const statCards = [
     {
       title: "الديون غير المسددة",
       description: "مجموع المبالغ المستحقة على العملاء والتي لم يتم تسديدها بعد",
@@ -109,7 +93,6 @@ export default function Home() {
       description: "مجموع الدخل والأموال التي تم تحصيلها خلال الشهر الحالي",
       value: stats ? formatCurrency(stats.monthlyIncome) : "-",
       icon: IconTrendingUp,
-  IconTrendingDown,
       color: "text-green-500",
       adminOnly: true,
       sensitive: true,
@@ -118,8 +101,7 @@ export default function Home() {
       title: "مصروفات الشهر",
       description: "إجمالي المصروفات (الديون) المسجلة خلال الشهر الحالي",
       value: stats ? formatCurrency(stats.monthlyExpenses) : "-",
-      icon: IconTrendingUp,
-  IconTrendingDown, // maybe something else? I'll use IconBuildings for now, actually they use icons imported at the top. Let's see what's available. IconBuildings was used. Let's stick with IconBuildings or maybe we need to check imports.
+      icon: IconTrendingDown,
       color: "text-purple-500",
       adminOnly: true,
       sensitive: true,
@@ -278,6 +260,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 

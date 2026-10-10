@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +38,7 @@ import {
 import { toast } from "sonner";
 import { AddDebtDialog } from "@/components/debts/AddDebtDialog";
 import { AddPaymentDialog } from "@/components/debts/AddPaymentDialog";
-import type { Transaction, TransactionStats, TransactionFilters } from "src/shared/types/transaction.types";
+import type { Transaction, TransactionFilters } from "src/shared/types/transaction.types";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Label } from "@radix-ui/react-dropdown-menu";
@@ -46,15 +47,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useSensitive } from "@/contexts/SensitiveContext";
 
 export default function Debts() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [totalTransactions, setTotalTransactions] = useState(0);
-  const [stats, setStats] = useState<TransactionStats>({
-    totalDebts: 0,
-    totalPayments: 0,
-    unpaidDebts: 0,
-    netBalance: 0,
-  });
-  const [filters, setFilters] = useState<TransactionFilters>({});
+  const [filters] = useState<TransactionFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
   const { showSensitive } = useSensitive();
 
@@ -67,44 +60,33 @@ export default function Debts() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [filters, currentPage]);
 
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, query: searchQuery }));
-      setCurrentPage(1); // Reset page on new search
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Derived state for pagination
-  const totalPages = Math.ceil(totalTransactions / itemsPerPage);
-
-  const loadData = async () => {
-
-    try {
+  const { data, refetch: loadData } = useQuery({
+    queryKey: ['transactions', { filters, currentPage }],
+    queryFn: async () => {
       const [transactionsResult, statsResult] = await Promise.all([
         window.api.transactions.getAll({ ...filters, limit: itemsPerPage, offset: (currentPage - 1) * itemsPerPage }),
-        window.api.transactions.getStats(filters),
+        window.api.transactions.getStats({}),
       ]);
-
-      if (transactionsResult.success && transactionsResult.data) {
-        setTransactions(transactionsResult.data);
-        setTotalTransactions(transactionsResult.total || 0);
-      }
-      if (statsResult.success && statsResult.data) {
-        setStats(statsResult.data);
-      }
-    } catch (error) {
-      console.error("Failed to load data", error);
-      toast.error("فشل تحميل البيانات");
-    } finally {
-
+      return {
+        transactions: transactionsResult.data || [],
+        totalTransactions: transactionsResult.total || 0,
+        stats: statsResult.data || {
+          totalDebts: 0,
+          totalPayments: 0,
+          unpaidDebts: 0,
+          netBalance: 0,
+        }
+      };
     }
-  };
+  });
+
+  const transactions = data?.transactions || [];
+  const totalTransactions = data?.totalTransactions || 0;
+  const stats = data?.stats || { totalDebts: 0, totalPayments: 0, unpaidDebts: 0, netBalance: 0 };
+  const totalPages = Math.ceil(totalTransactions / itemsPerPage);
+  
+
 
   const handleDelete = async (id: number) => {
     if (!confirm("هل أنت متأكد من حذف هذه العملية؟")) return;
@@ -481,3 +463,8 @@ export default function Debts() {
     </div>
   );
 }
+
+
+
+
+
