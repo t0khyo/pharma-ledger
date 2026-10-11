@@ -2,7 +2,7 @@
 
 Desktop financial management system for pharmacies to track daily income, operational expenses, customer debts, and automated backups.
 
-[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](package.json)
 [![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
 [![Electron](https://img.shields.io/badge/Electron-38-47848f.svg)](https://www.electronjs.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57.svg)](https://sqlite.org/)
