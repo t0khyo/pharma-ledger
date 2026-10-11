@@ -287,11 +287,8 @@ export class TransactionService {
     // 3. Current Month Income & Expenses
     const currentMonthResult = db.prepare(`
         SELECT 
-            SUM(CASE WHEN type = 'payment' THEN amount ELSE 0 END) as monthlyIncome,
-            SUM(CASE WHEN type = 'debt' THEN amount ELSE 0 END) as monthlyExpenses
-        FROM transactions 
-        WHERE is_deleted = 0 
-        AND date(date, 'localtime') >= date('now', 'localtime', 'start of month')
+            (SELECT COALESCE(SUM(income), 0) FROM financial_entry WHERE entry_date >= date('now', 'localtime', 'start of month')) as monthlyIncome,
+            (SELECT COALESCE(SUM(e.amount), 0) FROM expense_entry e JOIN financial_entry f ON e.entry_id = f.entry_id WHERE f.entry_date >= date('now', 'localtime', 'start of month')) as monthlyExpenses
     `).get() as { monthlyIncome: number, monthlyExpenses: number };
     
     const monthlyIncome = currentMonthResult.monthlyIncome || 0;
@@ -344,10 +341,11 @@ export class TransactionService {
       )
       SELECT 
         d.date,
-        COALESCE(SUM(CASE WHEN t.type = 'payment' THEN t.amount ELSE 0 END), 0) as income,
-        COALESCE(SUM(CASE WHEN t.type = 'debt' THEN t.amount ELSE 0 END), 0) as expenses
+        COALESCE(MAX(f.income), 0) as income,
+        COALESCE(SUM(e.amount), 0) as expenses
       FROM dates d
-      LEFT JOIN transactions t ON date(t.date, 'localtime') = d.date AND t.is_deleted = 0
+      LEFT JOIN financial_entry f ON f.entry_date = d.date
+      LEFT JOIN expense_entry e ON e.entry_id = f.entry_id
       GROUP BY d.date
       ORDER BY d.date ASC;
     `;
