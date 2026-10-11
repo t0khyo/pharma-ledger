@@ -1,5 +1,6 @@
 {
   "appId": "dev.abdelrahman-eltokhy.pharma-ledger",
+  "compression": "maximum",
   "files": ["dist-electron", "dist-react"],
   "icon": "./assets/pharma-ledger-icon.ico",
   "extraResources": ["dist-electron/electron/preload.cjs"],

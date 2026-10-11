@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { MonthSelector } from "@/components/financial/MonthSelector";
@@ -145,7 +144,7 @@ export default function FinancialReports() {
 
   const dateRange = getDateRange(selectedDate);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const { start, end } = dateRange;
 
     // Helper to format date consistent with how it is stored
@@ -206,6 +205,7 @@ export default function FinancialReports() {
     excelData.push(totalRow);
 
     // Create workbook and worksheet
+    const XLSX = await import("xlsx");
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(excelData);
 
