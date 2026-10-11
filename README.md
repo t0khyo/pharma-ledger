@@ -1,137 +1,135 @@
 # Pharma Ledger
 
-Desktop app for managing pharmacy finances, customer debts, and daily transactions.
+Desktop financial management system for pharmacies to track daily income, operational expenses, customer debts, and automated backups.
 
-![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](package.json)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
+[![Electron](https://img.shields.io/badge/Electron-38-47848f.svg)](https://www.electronjs.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57.svg)](https://sqlite.org/)
 
----
-
-## What it does
-
-Track income and expenses, manage customer debts, and generate monthly financial reports. Everything is stored locally in a SQLite database, with automatic daily backups sent to your email.
-
-### Key Features
-
-**Financial Tracking**
-- Record income and expenses
-- Monthly financial reports (customizable date ranges)
-- Export data to Excel
-- Real-time statistics dashboard
-
-**Customer Management**
-- Track customer debts
-- Full payment history
-- Customer profiles with transaction details
-
-**Payment Accounts**
-- Manage multiple payment sources
-- Categorize transactions
-- Monitor balances
-
-**Automated Backups**
-- Daily database backups
-- Email delivery
-- Configurable schedule
-
-**UI**
-- Dark mode
-- Arabic (RTL) support
-- Clean, modern interface
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Pharma Ledger Dashboard" width="100%" />
+</p>
 
 ---
 
-## Installation
+## Screenshots
 
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/t0khyo/pharma-ledger.git
-   cd pharma-ledger
-   ```
+<div align="center">
 
-2. Install dependencies:
-   ```bash
-   npm install
-   npm run rebuild
-   ```
+### 1. Main Dashboard (لوحة التحكم الرئيسية)
+> Financial summary cards, monthly income vs. expenses, customer debt statistics, and interactive charts.
 
-3. Set up email backups (optional):
-   
-   Create a `.env` file:
-   ```env
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASSWORD=your-app-password
-   BACKUP_RECIPIENT=recipient@example.com
-   BACKUP_ENABLED=true
-   ```
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Main Dashboard" width="100%" />
+</p>
 
-4. Run it:
-   ```bash
-   npm run dev
-   ```
+### 2. Debts & Ledger Management (سجل الديون والمدفوعات)
+> Detailed customer debts and repayment transactions with payment methods and status tags.
+
+<p align="center">
+  <img src="docs/screenshots/debts.png" alt="Debts Management" width="100%" />
+</p>
+
+### 3. Search & Quick Filters (البحث والتصفية السريعة)
+> Fast search across customers, transactions, dates, and amounts with instant filtering.
+
+<p align="center">
+  <img src="docs/screenshots/search-and-filter.png" alt="Search and Filters" width="100%" />
+</p>
+
+### 4. Privacy Mode (وضع الخصوصية وإخفاء الأرقام)
+> One-click sensitive data masking to protect financial balances while interacting with customers.
+
+<p align="center">
+  <img src="docs/screenshots/privacy-mode.png" alt="Privacy Mode" width="100%" />
+</p>
+
+</div>
 
 ---
 
-## Building
+## Features
 
-**Windows:**
+- **Financial Analytics & Dashboard:** Daily income & expenses tracking, interactive monthly charts (Recharts), and smart alerts.
+- **Customer Debts & Ledgers:** Customer debt records, transaction histories, and repayment logging.
+- **Role-Based Authentication:** Multi-user access control (Admin & Employee) with encrypted credentials.
+- **Automated Backups:** Scheduled daily SQLite database backups delivered via email.
+- **RTL & Modern UI:** Arabic-first RTL support, dark/light themes, built with Tailwind CSS & Radix UI.
+- **Local-First Architecture:** Fast, offline-first SQLite database (`better-sqlite3` with WAL mode).
+
+---
+
+## Tech Stack
+
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Radix UI, Lucide & Tabler Icons
+- **State Management:** TanStack Query (React Query)
+- **Desktop Core:** Electron 38, Node.js
+- **Database:** SQLite via `better-sqlite3`
+- **Services:** `nodemailer` & `node-cron` for automated email backups
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v20+ recommended)
+- C++ build tools (required for native `better-sqlite3` compilation)
+
+### 1. Installation
+
 ```bash
-npm run dist:win
+git clone https://github.com/t0khyo/pharma-ledger.git
+cd pharma-ledger
+npm install
+npm run rebuild
 ```
 
-**macOS:**
+### 2. Environment Setup (Optional)
+
+Create a `.env` file in the root directory to enable automated database backups:
+
+```env
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+BACKUP_RECIPIENT=recipient@example.com
+BACKUP_ENABLED=true
+```
+
+### 3. Development
+
 ```bash
-npm run dist:mac
+npm run dev
 ```
-
-**Linux:**
-```bash
-npm run dist:linux
-```
-
-Output goes to the `dist/` folder.
 
 ---
 
-## Development
+## Available Scripts
 
-### Scripts
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Run Vite and Electron concurrently in development mode |
+| `npm run build` | Type-check and build React frontend for production |
+| `npm run rebuild` | Rebuild `better-sqlite3` for the installed Electron version |
+| `npm run lint` | Run ESLint checks across the codebase |
+| `npm run dist:win` | Build and package Windows installer (`.exe`) |
+| `npm run dist:mac` | Build and package macOS installer |
+| `npm run dist:linux` | Build and package Linux installer |
 
-| Command | What it does |
-|---------|-------------|
-| `npm run dev` | Start dev mode with hot reload |
-| `npm run build` | Build React app |
-| `npm run lint` | Check code quality |
-| `npm run rebuild` | Rebuild native dependencies |
+---
 
-### Project Structure
+## Database Location
 
-```
-pharma-ledger/
-├── src/
-│   ├── electron/      # Backend (database, IPC handlers, services)
-│   ├── shared/        # Shared types and utilities
-│   └── ui/            # React frontend
-├── assets/            # Icons and images
-└── dist-*/           # Build output
-```
+The SQLite database (`app.db`) is stored in the local application data directory:
 
-### Tech Stack
-
-**Frontend:** React 19, TypeScript, Tailwind CSS, Radix UI  
-**Desktop:** Electron 38  
-**Database:** SQLite (better-sqlite3)  
-**Build:** Vite, Electron Builder
-
-**Key libraries:** TanStack Table, React Router, date-fns, nodemailer, node-cron
-
-### Database Location
-
-- Windows: `%APPDATA%/pharma-ledger/database.db`
-- macOS: `~/Library/Application Support/pharma-ledger/database.db`
-- Linux: `~/.config/pharma-ledger/database.db`
+- **Windows:** `%APPDATA%/Pharma Ledger/app.db`
+- **macOS:** `~/Library/Application Support/Pharma Ledger/app.db`
+- **Linux:** `~/.config/Pharma Ledger/app.db`
 
 ---
 
 ## License
 
 Private project. All rights reserved.
+

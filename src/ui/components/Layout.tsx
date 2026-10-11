@@ -8,13 +8,13 @@ export function Layout() {
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 50)",
-          "--header-height": "calc(var(--spacing) * 12)",
+          "--sidebar-width": "11.5rem",
+          "--header-height": "3rem",
         } as React.CSSProperties
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="md:!m-4">{/* Increased margin from 2 to 4 for more gap from edges */}
+      <SidebarInset className="md:m-2 md:ml-2 md:mr-0">
         <PageHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col items-start">

@@ -3,7 +3,7 @@ import {
   IconSettings,
   IconUser,
 } from "@tabler/icons-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -36,7 +36,8 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
-  const { logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -49,10 +50,19 @@ export function NavUser({
     }
   };
 
+  const isProfileActive =
+    location.pathname === "/profile" || location.pathname === "/settings";
+
+  // Initials for avatar fallback
+  const initials = user.name
+    ? user.name.trim().slice(0, 2).toUpperCase()
+    : "م";
+
   // If avatar is a path starting with /, treat it as asset, otherwise it's base64 or absolute
-  const avatarSrc = user.avatar && user.avatar.startsWith("data:") 
-    ? user.avatar 
-    : defaultAvatar;
+  const avatarSrc =
+    user.avatar && user.avatar.startsWith("data:")
+      ? user.avatar
+      : defaultAvatar;
 
   return (
     <SidebarMenu>
@@ -61,11 +71,13 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              tooltip={user.name}
+              isActive={isProfileActive}
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={avatarSrc} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-right text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -78,7 +90,7 @@ export function NavUser({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? "bottom" : "left"}
             align="end"
             sideOffset={4}
           >
@@ -86,7 +98,7 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-right text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={avatarSrc} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-right text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
@@ -99,22 +111,24 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <Link to="/profile">
-                <DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
                   <IconUser className="ml-2 w-4 h-4" />
                   الملف الشخصي
                 </DropdownMenuItem>
               </Link>
-              <Link to="/settings">
-                <DropdownMenuItem>
-                  <IconSettings className="ml-2 w-4 h-4" />
-                  الإعدادات
-                </DropdownMenuItem>
-              </Link>
+              {authUser?.role === "admin" && (
+                <Link to="/settings">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <IconSettings className="ml-2 w-4 h-4" />
+                    الإعدادات
+                  </DropdownMenuItem>
+                </Link>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <IconLogout className="ml-2 w-4 h-4" />
-              تسجيل الخروج
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+              <IconLogout className="ml-2 w-4 h-4 text-destructive" />
+              <span>تسجيل الخروج</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

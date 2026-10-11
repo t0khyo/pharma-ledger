@@ -31,6 +31,9 @@ export default function Home() {
   const navigate = useNavigate();
   const { showSensitive } = useSensitive();
 
+  const currentHour = new Date().getHours();
+  const greeting = currentHour >= 4 && currentHour < 12 ? "صباح الخير" : "مساء الخير";
+
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const getDateRange = (date: Date) => {
@@ -173,7 +176,7 @@ const statCards = [
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl font-bold">
-                مرحباً، {user?.full_name || "بالكريم"} 👋
+                {greeting}{user?.full_name ? `، ${user.full_name}` : ""}
               </CardTitle>
               <CardDescription className="mt-1">
                 نظرة عامة على نشاط دفتر المحاسبة
