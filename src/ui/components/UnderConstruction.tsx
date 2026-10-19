@@ -1,4 +1,4 @@
-import { IconHammer, IconArrowRight } from "@tabler/icons-react";
+import { Hammer, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -20,7 +20,7 @@ export function UnderConstruction({
           <div className="relative mb-6">
             <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-xl"></div>
             <div className="relative bg-yellow-500/10 p-6 rounded-full">
-              <IconHammer className="h-16 w-16 text-yellow-500 animate-pulse" />
+              <Hammer className="h-16 w-16 text-yellow-500 animate-pulse" />
             </div>
           </div>
 
@@ -46,7 +46,7 @@ export function UnderConstruction({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button asChild>
               <Link to="/">
-                <IconArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4" />
                 العودة للرئيسية
               </Link>
             </Button>

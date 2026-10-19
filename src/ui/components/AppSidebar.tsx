@@ -1,12 +1,12 @@
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  IconTrendingUp,
-  IconBuildings,
-  IconCreditCard,
-  IconUsers,
-  IconHome,
-} from "@tabler/icons-react";
+  TrendingUp,
+  Building2,
+  CreditCard,
+  Users,
+  Home,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { NavUser } from "@/components/NavUser";
@@ -33,7 +33,7 @@ const navGroups = [
       {
         title: "الرئيسية",
         url: "/",
-        icon: IconHome,
+        icon: Home,
         roles: ["admin", "employee"],
       },
     ],
@@ -44,13 +44,13 @@ const navGroups = [
       {
         title: "الديون",
         url: "/debts",
-        icon: IconCreditCard,
+        icon: CreditCard,
         roles: ["admin", "employee"],
       },
       {
         title: "العملاء",
         url: "/customers",
-        icon: IconUsers,
+        icon: Users,
         roles: ["admin", "employee"],
       },
     ],
@@ -61,13 +61,13 @@ const navGroups = [
       {
         title: "التقارير المالية",
         url: "/reports",
-        icon: IconTrendingUp,
+        icon: TrendingUp,
         roles: ["admin"], // Only admins can access
       },
       {
         title: "الشركات",
         url: "/companies",
-        icon: IconBuildings,
+        icon: Building2,
         roles: ["admin", "employee"],
       },
     ],

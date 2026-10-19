@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown, Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, User, Phone, FileText, MoreVertical, Eye, ArrowUp, ArrowDown, ArrowUpDown, Users, CreditCard, CheckCircle2, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -186,18 +186,22 @@ const handleOpenDialog = (customer?: Customer) => {
             <Users className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.totalCustomers}
+            <div className="text-2xl font-bold">
+              {!showSensitive ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base font-normal">******</span>
+              ) : (
+                stats.totalCustomers
+              )}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الديون</CardTitle>
-            <TrendingUp className="h-4 w-4 text-red-500" />
+            <CreditCard className="h-4 w-4 text-rose-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold">
               {!showSensitive ? (
                 <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
               ) : (
@@ -209,10 +213,10 @@ const handleOpenDialog = (customer?: Customer) => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الأرصدة</CardTitle>
-            <TrendingDown className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold">
               {!showSensitive ? (
                 <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
               ) : (
@@ -224,10 +228,10 @@ const handleOpenDialog = (customer?: Customer) => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
-            <Wallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : "text-green-500"}`} />
+            <Scale className={`h-4 w-4 ${stats.netBalance < 0 ? "text-rose-500" : "text-emerald-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : "text-green-600"}`}>
+            <div className="text-2xl font-bold">
               {!showSensitive ? (
                 <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">******</span>
               ) : (

@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { IconAlertTriangle, IconInfoCircle, IconX } from "@tabler/icons-react";
+import { AlertTriangle, Info, X } from "lucide-react";
 import type { SmartAlert } from "src/shared/types/transaction.types";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -27,9 +27,9 @@ export function SmartAlerts({ alerts, loading }: SmartAlertsProps) {
           className={`relative ${alert.type === 'warning' ? 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-900' : ''}`}
         >
           {alert.type === 'destructive' || alert.type === 'warning' ? (
-            <IconAlertTriangle className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4" />
           ) : (
-            <IconInfoCircle className="h-4 w-4" />
+            <Info className="h-4 w-4" />
           )}
           <AlertTitle className="text-sm font-semibold mb-1">
             {alert.type === 'destructive' ? 'تنبيه هام' : alert.type === 'warning' ? 'تحذير' : 'ملحوظة'}
@@ -43,7 +43,7 @@ export function SmartAlerts({ alerts, loading }: SmartAlertsProps) {
             className="absolute top-2 left-2 h-6 w-6 opacity-70 hover:opacity-100"
             onClick={() => setDismissed([...dismissed, alert.id])}
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         </Alert>
       ))}

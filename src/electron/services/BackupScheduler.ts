@@ -7,11 +7,30 @@ export class BackupScheduler {
   private static cronJob: ScheduledTask | null = null;
   private static localCronJob: ScheduledTask | null = null;
   private static fallbackInterval: NodeJS.Timeout | null = null;
+  private static isSendingEmail: boolean = false;
+
+  private static getCairoDateString(date: Date = new Date()): string {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Cairo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(date);
+  }
+
+  private static getCairoHour(date: Date = new Date()): number {
+    const hourStr = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Africa/Cairo",
+      hour: "numeric",
+      hour12: false
+    }).format(date);
+    return parseInt(hourStr, 10);
+  }
 
   static init() {
     console.log("Initializing backup scheduler...");
 
-    // Check immediately on startup (fallback for missed email backups)
+    // Check immediately on startup (fallback for missed email backups if past 10 PM)
     this.checkAndSendBackup(true);
     
     // Perform an initial local backup shortly after startup
@@ -33,7 +52,7 @@ export class BackupScheduler {
 
     console.log("Scheduled email backup at 10:00 PM daily, local backup every 2 hours");
 
-    // Fallback: Check every hour to catch missed email backups
+    // Fallback: Check every hour to catch missed email backups (after 10 PM)
     this.fallbackInterval = setInterval(() => {
       console.log("Hourly fallback check triggered");
       this.checkAndSendBackup(true);
@@ -73,7 +92,7 @@ export class BackupScheduler {
     try {
       const dbPath = getDatabasePath();
       await EmailService.saveLocalBackup(dbPath);
-      console.log("[Local Backup] Successfully updated today's backup file.");
+      console.log("[Local Backup] Successfully saved local backup snapshot.");
     } catch (err) {
       console.error("[Local Backup] Failed:", err);
     }
@@ -82,13 +101,16 @@ export class BackupScheduler {
   private static async checkAndSendBackup(isFallback: boolean = false) {
     const checkType = isFallback ? "Fallback" : "Scheduled";
     console.log(`[${checkType}] Checking backup status...`);
+
+    // 1. Concurrency mutex to prevent duplicate simultaneous sends
+    if (this.isSendingEmail) {
+      console.log(`[${checkType}] Email backup already in progress. Skipping to avoid duplicates.`);
+      return;
+    }
     
     const db = getDatabaseConnection();
 
-    // 1. Get settings
-    const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("last_backup_sent_at") as { value: string } | undefined;
-    const lastSentStr = row?.value || "";
-
+    // 2. Check if backup is enabled
     const enabledRow = db.prepare("SELECT value FROM settings WHERE key = ?").get("backup_enabled") as { value: string } | undefined;
     const enabled = enabledRow?.value === "true";
 
@@ -97,14 +119,28 @@ export class BackupScheduler {
       return;
     }
 
-    // 2. Check if already sent today
-    const today = new Date().toDateString(); // "Sun Jan 19 2026"
+    // 3. Deduplication check: verify if already sent today in Cairo timezone
+    const today = this.getCairoDateString();
+    const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("last_backup_sent_at") as { value: string } | undefined;
+    const lastSentStr = row?.value || "";
+
     if (lastSentStr === today) {
-      console.log(`[${checkType}] Backup already sent today.`);
+      console.log(`[${checkType}] Email backup already sent today (${today}). Skipping to avoid duplicates.`);
       return;
     }
 
-    // 3. Send backup (email + local)
+    // 4. Fallback gate: only send missed backup if 10:00 PM (22:00) has already arrived/passed today
+    if (isFallback) {
+      const cairoHour = this.getCairoHour();
+      if (cairoHour < 22) {
+        console.log(`[${checkType}] Daily backup is scheduled for 10:00 PM (current Cairo hour: ${cairoHour}). Skipping fallback check.`);
+        return;
+      }
+    }
+
+    this.isSendingEmail = true;
+
+    // 5. Send backup (local + email)
     console.log(`[${checkType}] Starting backup process...`);
     
     try {
@@ -122,10 +158,10 @@ export class BackupScheduler {
       const emailSuccess = await EmailService.sendBackup(dbPath);
 
       if (emailSuccess) {
-        // 4. Update last_sent timestamp only if email succeeded
-        db.prepare("UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?")
-          .run(today, "last_backup_sent_at");
-        console.log(`[${checkType}] Email backup sent successfully and status updated.`);
+        // Use INSERT OR REPLACE to guarantee last_backup_sent_at is persisted even if not previously seeded
+        db.prepare("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('last_backup_sent_at', ?, CURRENT_TIMESTAMP)")
+          .run(today);
+        console.log(`[${checkType}] Email backup sent successfully and recorded for ${today}.`);
       } else {
         console.log(`[${checkType}] Email backup failed to send (EmailService returned false).`);
       }
@@ -165,6 +201,8 @@ export class BackupScheduler {
         body: "حدث خطأ أثناء إنشاء النسخة الاحتياطية",
         icon: undefined,
       }).show();
+    } finally {
+      this.isSendingEmail = false;
     }
   }
 }

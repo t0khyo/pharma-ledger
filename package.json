@@ -4,7 +4,7 @@
   "author": "Abdelrahman Eltokhy",
   "description": "Pharma Ledger is a powerful desktop app designed for pharmacies to manage income, expenses, and financial records. It helps track daily transactions, manage client debts, and generate detailed monthly reports for better financial insights.",
   "private": true,
-  "version": "2.3.0",
+  "version": "2.3.2",
   "type": "module",
   "main": "dist-electron/electron/main.js",
   "scripts": {
@@ -37,7 +37,6 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@tabler/icons-react": "^3.35.0",
     "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.3",

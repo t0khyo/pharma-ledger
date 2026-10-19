@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
-import { statSync, existsSync, mkdirSync, copyFileSync, readdirSync, unlinkSync } from "fs";
+import { statSync, existsSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, utimesSync } from "fs";
 import { join, dirname } from "path";
 import { app } from "electron";
-import { getDatabaseConnection, getDatabasePath } from "../db/db.js";
+import { getDatabaseConnection, getDatabasePath, checkpointDatabase } from "../db/db.js";
 
 interface EmailSettings {
   host: string;
@@ -49,10 +49,15 @@ export class EmailService {
 
   private static getBackupFilename(includeTime: boolean = true): string {
     const now = new Date();
-    const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const date = `${year}-${month}-${day}`;
     if (includeTime) {
-      const time = now.toTimeString().split(' ')[0].replace(/:/g, ''); // HHMMSS
-      return `pharma_ledger_${date}_${time}.db`;
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      return `pharma_ledger_${date}_${hours}${minutes}${seconds}.db`;
     }
     return `pharma_ledger_${date}.db`;
   }
@@ -60,27 +65,47 @@ export class EmailService {
   private static cleanupOldBackups(backupDir: string): void {
     try {
       const now = new Date();
-      const currentMonth = now.getMonth(); // 0-11
-      const currentYear = now.getFullYear();
+      const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
       
       // Read all files in backup directory
       const files = readdirSync(backupDir);
       
       files.forEach(file => {
+        // Never delete the latest backup file pointer
+        if (file === 'pharma_ledger_latest.db') {
+          return;
+        }
+
         // Only process our backup files (pharma_ledger_*.db)
         if (file.startsWith('pharma_ledger_') && file.endsWith('.db')) {
-          // Extract date from filename (handles both with and without time)
-          const match = file.match(/pharma_ledger_(\d{4})-(\d{2})-(\d{2})(?:_\d{6})?\.db/);
+          // Extract date and optional time from filename
+          const match = file.match(/^pharma_ledger_(\d{4})-(\d{2})-(\d{2})(?:_(\d{2})(\d{2})(\d{2}))?\.db$/);
           
           if (match) {
-            const fileYear = parseInt(match[1]);
-            const fileMonth = parseInt(match[2]) - 1; // Convert to 0-11
+            const fileYear = parseInt(match[1], 10);
+            const fileMonth = parseInt(match[2], 10) - 1; // Convert to 0-11
+            const fileDay = parseInt(match[3], 10);
+            const fileHour = match[4] ? parseInt(match[4], 10) : 0;
+            const fileMin = match[5] ? parseInt(match[5], 10) : 0;
+            const fileSec = match[6] ? parseInt(match[6], 10) : 0;
+
+            // 1. Never delete any snapshot created today
+            const isToday =
+              fileYear === now.getFullYear() &&
+              fileMonth === now.getMonth() &&
+              fileDay === now.getDate();
+
+            if (isToday) {
+              return;
+            }
             
-            // Delete if file is from a previous month or year
-            if (fileYear < currentYear || (fileYear === currentYear && fileMonth < currentMonth)) {
+            // 2. Weekly rotation: Delete backups older than 7 days
+            const fileDate = new Date(fileYear, fileMonth, fileDay, fileHour, fileMin, fileSec);
+            const ageInMs = now.getTime() - fileDate.getTime();
+            if (ageInMs > ONE_WEEK_MS) {
               const filePath = join(backupDir, file);
               unlinkSync(filePath);
-              console.log(`Deleted old backup: ${file}`);
+              console.log(`[Backup Rotation] Deleted backup older than 7 days: ${file}`);
             }
           }
         }
@@ -92,6 +117,10 @@ export class EmailService {
 
   static async saveLocalBackup(dbPath: string): Promise<boolean> {
     try {
+      // 1. Force SQLite WAL checkpoint so app.db contains all latest transactions
+      // and explicitly update the last modified timestamp of app.db in the file system
+      checkpointDatabase();
+
       const db = getDatabaseConnection();
       
       // Get configured backup path from settings
@@ -115,16 +144,24 @@ export class EmailService {
         console.log(`Created backup directory at: ${backupDir}`);
       }
       
-      // Generate timestamped filename (local backup uses date only to overwrite today's file)
-      const filename = this.getBackupFilename(false);
+      const now = new Date();
+
+      // Generate timestamped filename to keep every 2-hour snapshot distinct
+      const filename = this.getBackupFilename(true);
       const backupPath = join(backupDir, filename);
       
-      // Copy database file to backup location
+      // Copy database file to timestamped backup location and update its filesystem modification time
       copyFileSync(dbPath, backupPath);
+      utimesSync(backupPath, now, now);
+
+      // Also maintain/update 'pharma_ledger_latest.db' so users can instantly find the newest backup in the file system
+      const latestPath = join(backupDir, "pharma_ledger_latest.db");
+      copyFileSync(dbPath, latestPath);
+      utimesSync(latestPath, now, now);
       
-      console.log(`Local backup saved: ${backupPath}`);
+      console.log(`Local backup saved: ${backupPath} and updated: ${latestPath}`);
       
-      // Clean up old backups (keep only current month)
+      // Clean up old backups (weekly rotation: keep today and past 7 days)
       this.cleanupOldBackups(backupDir);
       
       return true;
@@ -411,6 +448,9 @@ export class EmailService {
     });
 
     try {
+      // Checkpoint WAL and update last modified time so stats and attachment are 100% current
+      checkpointDatabase();
+
       const stats = this.getBackupStats();
       const htmlContent = this.generateEmailHTML(stats, false);
 

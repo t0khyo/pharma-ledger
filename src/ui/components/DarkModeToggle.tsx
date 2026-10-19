@@ -1,4 +1,4 @@
-import { IconMoon, IconSun } from "@tabler/icons-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ export function DarkModeToggle() {
         className="h-9 w-9"
         disabled
       >
-        <IconSun className="h-4 w-4" />
+        <Sun className="h-4 w-4" />
       </Button>
     );
   }
@@ -36,9 +36,9 @@ export function DarkModeToggle() {
       title={isDark ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن"}
     >
       {isDark ? (
-        <IconSun className="h-4 w-4 transition-transform hover:rotate-180" />
+        <Sun className="h-4 w-4 transition-transform hover:rotate-180" />
       ) : (
-        <IconMoon className="h-4 w-4 transition-transform hover:-rotate-12" />
+        <Moon className="h-4 w-4 transition-transform hover:-rotate-12" />
       )}
     </Button>
   );

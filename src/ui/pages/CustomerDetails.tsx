@@ -18,16 +18,16 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  IconArrowUpRight,
-  IconArrowDownLeft,
-  IconWallet,
-  IconArrowLeft,
-  IconUser,
-  IconPhone,
-  IconFileText,
-  IconPrinter,
-  IconCheck,
-} from "@tabler/icons-react";
+  ArrowLeft,
+  User,
+  Phone,
+  FileText,
+  Printer,
+  Check,
+  CreditCard,
+  CheckCircle2,
+  Scale,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -35,11 +35,13 @@ import type { Customer } from "src/shared/types/customer.types";
 import type { Transaction, TransactionStats } from "src/shared/types/transaction.types";
 import { AddPaymentDialog } from "@/components/debts/AddPaymentDialog";
 import { formatCurrency } from "@/utils/formatters";
+import { useSensitive } from "@/contexts/SensitiveContext";
 import logoImage from "@/assets/logo.png";
 
 export default function CustomerDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showSensitive } = useSensitive();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<TransactionStats>({
@@ -139,16 +141,16 @@ export default function CustomerDetails() {
       <div className="flex items-center justify-between no-print">
         <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/customers")}>
-            <IconArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-                <IconUser className="h-6 w-6" />
+                <User className="h-6 w-6" />
                 {customer.name}
             </h1>
             {customer.phone && (
                 <p className="text-muted-foreground flex items-center gap-1 mt-1 font-mono dir-ltr">
-                <IconPhone className="h-4 w-4" />
+                <Phone className="h-4 w-4" />
                 {customer.phone}
                 </p>
             )}
@@ -156,12 +158,12 @@ export default function CustomerDetails() {
         </div>
         <div className="flex gap-2">
             <Button variant="outline" onClick={handlePrint}>
-                <IconPrinter className="w-4 h-4 ml-2" />
+                <Printer className="w-4 h-4 ml-2" />
                 طباعة كشف
             </Button>
             {stats.netBalance < 0 && (
                 <Button onClick={() => setShowFullPayment(true)}>
-                    <IconCheck className="w-4 h-4 ml-2" />
+                    <Check className="w-4 h-4 ml-2" />
                     تسديد كامل
                 </Button>
             )}
@@ -222,33 +224,45 @@ export default function CustomerDetails() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الديون</CardTitle>
-            <IconArrowUpRight className="h-4 w-4 text-blue-500" />
+            <CreditCard className="h-4 w-4 text-rose-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {formatCurrency(stats.totalDebts)}
+            <div className="text-2xl font-bold">
+              {!showSensitive ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base font-normal">******</span>
+              ) : (
+                formatCurrency(stats.totalDebts)
+              )}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي التسديدات</CardTitle>
-            <IconArrowDownLeft className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(stats.totalPayments)}
+            <div className="text-2xl font-bold">
+              {!showSensitive ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base font-normal">******</span>
+              ) : (
+                formatCurrency(stats.totalPayments)
+              )}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">صافي الرصيد</CardTitle>
-            <IconWallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : "text-green-500"}`} />
+            <Scale className={`h-4 w-4 ${stats.netBalance < 0 ? "text-rose-500" : "text-emerald-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : "text-green-600"}`}>
-              {stats.netBalance > 0 ? `- ${formatCurrency(stats.netBalance)}` : formatCurrency(Math.abs(stats.netBalance))}
+            <div className="text-2xl font-bold">
+              {!showSensitive ? (
+                <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base font-normal">******</span>
+              ) : (
+                stats.netBalance > 0 ? `- ${formatCurrency(stats.netBalance)}` : formatCurrency(Math.abs(stats.netBalance))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -256,7 +270,7 @@ export default function CustomerDetails() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2 no-print">
-            <IconFileText className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
             سجل العمليات
         </h2>
         <div className="rounded-md border bg-card">
@@ -431,7 +445,7 @@ export default function CustomerDetails() {
               إلغاء
             </Button>
             <Button onClick={handleConfirmPrint}>
-              <IconPrinter className="w-4 h-4 ml-2" />
+              <Printer className="w-4 h-4 ml-2" />
               طباعة
             </Button>
           </DialogFooter>

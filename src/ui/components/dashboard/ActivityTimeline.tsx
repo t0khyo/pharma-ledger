@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Transaction } from "src/shared/types/transaction.types";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { ar } from "date-fns/locale";
-import { IconArrowDownLeft, IconArrowUpRight, IconWallet, IconCash, IconBuildingBank, IconBuildingCommunity } from "@tabler/icons-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Banknote, Landmark, Building2 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
 import { useSensitive } from "@/contexts/SensitiveContext";
 
@@ -32,11 +32,11 @@ export function ActivityTimeline({ transactions, loading }: ActivityTimelineProp
 
   const getMethodIcon = (method?: string) => {
     switch (method) {
-      case "cash": return <IconCash className="h-3 w-3" />;
-      case "instapay": return <IconBuildingCommunity className="h-3 w-3" />;
-      case "bank_transfer": return <IconBuildingBank className="h-3 w-3" />;
+      case "cash": return <Banknote className="h-3 w-3" />;
+      case "instapay": return <Building2 className="h-3 w-3" />;
+      case "bank_transfer": return <Landmark className="h-3 w-3" />;
       case "e-wallet":
-      default: return <IconWallet className="h-3 w-3" />;
+      default: return <Wallet className="h-3 w-3" />;
     }
   };
 
@@ -69,9 +69,9 @@ export function ActivityTimeline({ transactions, loading }: ActivityTimelineProp
               >
                 <div className={`p-1 rounded-md ${isPayment ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
                   {isPayment ? (
-                    <IconArrowDownLeft className="h-4 w-4 text-green-500" />
+                    <ArrowDownLeft className="h-4 w-4 text-green-500" />
                   ) : (
-                    <IconArrowUpRight className="h-4 w-4 text-red-500" />
+                    <ArrowUpRight className="h-4 w-4 text-red-500" />
                   )}
                 </div>
                 

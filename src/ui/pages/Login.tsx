@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { IconUser, IconLock } from "@tabler/icons-react";
+import { User, Lock } from "lucide-react";
 import logoImage from "@/assets/logo.png";
 
 export default function Login() {
@@ -63,7 +63,7 @@ export default function Login() {
                 اسم المستخدم
               </Label>
               <div className="relative">
-                <IconUser className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <Input
                   id="username"
                   type="text"
@@ -84,7 +84,7 @@ export default function Login() {
                 كلمة المرور
               </Label>
               <div className="relative">
-                <IconLock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <Input
                   id="password"
                   type="password"

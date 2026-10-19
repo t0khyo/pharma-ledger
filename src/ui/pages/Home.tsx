@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  IconCreditCard,
-  IconUsers,
-  IconTrendingUp,
-  IconTrendingDown,
-  IconBuildings,
-  IconLoader,
-  IconInfoCircle,
-} from "@tabler/icons-react";
+  CreditCard,
+  Users,
+  TrendingUp,
+  TrendingDown,
+  Building2,
+  Loader2,
+  Info,
+  AlertCircle,
+} from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   Card,
@@ -77,8 +78,8 @@ const statCards = [
       title: "الديون غير المسددة",
       description: "مجموع المبالغ المستحقة على العملاء والتي لم يتم تسديدها بعد",
       value: stats ? formatCurrency(stats.unpaidDebts) : "-",
-      icon: IconCreditCard,
-      color: "text-red-500",
+      icon: AlertCircle,
+      color: "text-amber-500",
       adminOnly: true,
       sensitive: true,
     },
@@ -86,7 +87,7 @@ const statCards = [
       title: "عدد العملاء",
       description: "إجمالي عدد العملاء المسجلين في النظام",
       value: stats ? formatNumber(stats.totalCustomers) : "-",
-      icon: IconUsers,
+      icon: Users,
       color: "text-blue-500",
       adminOnly: false,
       sensitive: true,
@@ -95,8 +96,8 @@ const statCards = [
       title: "إيرادات الشهر",
       description: "مجموع الدخل والأموال التي تم تحصيلها خلال الشهر الحالي",
       value: stats ? formatCurrency(stats.monthlyIncome) : "-",
-      icon: IconTrendingUp,
-      color: "text-green-500",
+      icon: TrendingUp,
+      color: "text-emerald-500",
       adminOnly: true,
       sensitive: true,
     },
@@ -104,8 +105,8 @@ const statCards = [
       title: "مصروفات الشهر",
       description: "إجمالي المصروفات (الديون) المسجلة خلال الشهر الحالي",
       value: stats ? formatCurrency(stats.monthlyExpenses) : "-",
-      icon: IconTrendingDown,
-      color: "text-purple-500",
+      icon: TrendingDown,
+      color: "text-rose-500",
       adminOnly: true,
       sensitive: true,
     },
@@ -118,7 +119,7 @@ const statCards = [
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[50vh] text-muted-foreground">
-        <IconLoader className="h-8 w-8 animate-spin ml-2" />
+        <Loader2 className="h-8 w-8 animate-spin ml-2" />
         جاري تحميل لوحة التحكم...
       </div>
     );
@@ -131,7 +132,7 @@ const statCards = [
         onClick={() => navigate("/debts")}
       >
         <div className="p-2 rounded-md bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
-          <IconCreditCard className="h-5 w-5 text-red-600" />
+          <CreditCard className="h-5 w-5 text-red-600" />
         </div>
         <span className="font-medium text-sm text-red-700 dark:text-red-400">الديون</span>
       </Card>
@@ -141,7 +142,7 @@ const statCards = [
         onClick={() => navigate("/customers")}
       >
         <div className="p-2 rounded-md bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
-          <IconUsers className="h-5 w-5 text-blue-600" />
+          <Users className="h-5 w-5 text-blue-600" />
         </div>
         <span className="font-medium text-sm text-blue-700 dark:text-blue-400">العملاء</span>
       </Card>
@@ -151,7 +152,7 @@ const statCards = [
         onClick={() => navigate("/reports")}
       >
         <div className="p-2 rounded-md bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-          <IconTrendingUp className="h-5 w-5 text-green-600" />
+          <TrendingUp className="h-5 w-5 text-green-600" />
         </div>
         <span className="font-medium text-sm text-green-700 dark:text-green-400">التقارير</span>
       </Card>
@@ -161,7 +162,7 @@ const statCards = [
         onClick={() => navigate("/companies")}
       >
         <div className="p-2 rounded-md bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-          <IconBuildings className="h-5 w-5 text-purple-600" />
+          <Building2 className="h-5 w-5 text-purple-600" />
         </div>
         <span className="font-medium text-sm text-purple-700 dark:text-purple-400">الشركات</span>
       </Card>
@@ -198,7 +199,7 @@ const statCards = [
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="cursor-help">
-                          <IconInfoCircle className="h-3.5 w-3.5 hover:text-foreground transition-colors" />
+                          <Info className="h-3.5 w-3.5 hover:text-foreground transition-colors" />
                         </span>
                       </TooltipTrigger>
                       <TooltipContent side="top" align="center">
@@ -213,7 +214,7 @@ const statCards = [
                 <CardContent className="pb-2">
                   <div className="text-xl font-bold">
                     {stat.sensitive && !showSensitive ? (
-                      <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base">
+                      <span className="blur-md select-none bg-muted/50 rounded px-2 py-0.5 text-base font-normal">
                         ******
                       </span>
                     ) : (

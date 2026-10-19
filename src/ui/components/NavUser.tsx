@@ -1,8 +1,8 @@
 import {
-  IconLogout,
-  IconSettings,
-  IconUser,
-} from "@tabler/icons-react";
+  LogOut,
+  Settings,
+  User,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -85,7 +85,7 @@ export function NavUser({
                   {user.email}
                 </span>
               </div>
-              <IconSettings className="mr-auto size-4" />
+              <Settings className="mr-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -112,14 +112,14 @@ export function NavUser({
             <DropdownMenuGroup>
               <Link to="/profile">
                 <DropdownMenuItem className="cursor-pointer">
-                  <IconUser className="ml-2 w-4 h-4" />
+                  <User className="ml-2 w-4 h-4" />
                   الملف الشخصي
                 </DropdownMenuItem>
               </Link>
               {authUser?.role === "admin" && (
                 <Link to="/settings">
                   <DropdownMenuItem className="cursor-pointer">
-                    <IconSettings className="ml-2 w-4 h-4" />
+                    <Settings className="ml-2 w-4 h-4" />
                     الإعدادات
                   </DropdownMenuItem>
                 </Link>
@@ -127,7 +127,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-              <IconLogout className="ml-2 w-4 h-4 text-destructive" />
+              <LogOut className="ml-2 w-4 h-4 text-destructive" />
               <span>تسجيل الخروج</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

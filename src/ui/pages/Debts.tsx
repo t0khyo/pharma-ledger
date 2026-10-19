@@ -26,15 +26,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  IconPlus,
-  IconSearch,
-  IconTrash,
-  IconEye,
-  IconDotsVertical,
-  IconArrowUpRight,
-  IconInfoCircle,
-  IconWallet,
-} from "@tabler/icons-react";
+  Plus,
+  Search,
+  Trash2,
+  Eye,
+  MoreVertical,
+  Info,
+  CreditCard,
+  CheckCircle2,
+  AlertCircle,
+  Scale,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AddDebtDialog } from "@/components/debts/AddDebtDialog";
 import { AddPaymentDialog } from "@/components/debts/AddPaymentDialog";
@@ -128,10 +130,10 @@ export default function Debts() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الديون</CardTitle>
-            <IconArrowUpRight className="h-4 w-4 text-blue-500" />
+            <CreditCard className="h-4 w-4 text-rose-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold">
               {showSensitive ? (
                 formatCurrency(stats.totalDebts)
               ) : (
@@ -145,10 +147,10 @@ export default function Debts() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي التسديدات</CardTitle>
-            <IconArrowUpRight className="h-4 w-4 text-blue-500" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold">
               {showSensitive ? (
                 formatCurrency(stats.totalPayments)
               ) : (
@@ -172,7 +174,7 @@ export default function Debts() {
                     aria-label="شرح صافي الرصيد"
                     className="h-5 w-5 text-muted-foreground hover:text-foreground"
                   >
-                    <IconInfoCircle className="h-3.5 w-3.5" />
+                    <Info className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top" align="start">
@@ -180,10 +182,10 @@ export default function Debts() {
                 </TooltipContent>
               </Tooltip>
             </CardTitle>
-            <IconWallet className={`h-4 w-4 ${stats.netBalance < 0 ? "text-red-500" : "text-green-500"}`} />
+            <Scale className={`h-4 w-4 ${stats.netBalance < 0 ? "text-rose-500" : "text-emerald-500"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.netBalance < 0 ? "text-red-600" : "text-green-600"}`}>
+            <div className="text-2xl font-bold">
               {showSensitive ? (
                 stats.netBalance > 0 ? `- ${formatCurrency(stats.netBalance)}` : formatCurrency(Math.abs(stats.netBalance))
               ) : (
@@ -197,11 +199,11 @@ export default function Debts() {
         {/* Unpaid Debts Card */}
          <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-red-600">الديون غير المسددة</CardTitle>
-            <IconArrowUpRight className="h-4 w-4 text-red-500" />
+            <CardTitle className="text-sm font-medium">الديون غير المسددة</CardTitle>
+            <AlertCircle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold">
               {showSensitive ? (
                 formatCurrency(stats.unpaidDebts)
               ) : (
@@ -217,7 +219,7 @@ export default function Debts() {
       {/* Actions & Filters */}
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-center">
         <div className="relative w-full sm:w-72">
-          <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="بحث باسم العميل..."
             className="pr-9"
@@ -227,11 +229,11 @@ export default function Debts() {
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <Button onClick={() => setShowAddPayment(true)} variant="default" className="flex-1 sm:flex-none">
-            <IconPlus className="ml-2 h-4 w-4" />
+            <Plus className="ml-2 h-4 w-4" />
             تسجيل تسديد
           </Button>
           <Button onClick={() => setShowAddDebt(true)} variant="default" className="flex-1 sm:flex-none">
-            <IconPlus className="ml-2 h-4 w-4" />
+            <Plus className="ml-2 h-4 w-4" />
             إضافة دين
           </Button>
         </div>
@@ -301,12 +303,12 @@ export default function Debts() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                          <IconDotsVertical className="h-4 w-4" />
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleUneditableView(transaction)}>
-                          <IconEye className="ml-2 h-4 w-4" />
+                          <Eye className="ml-2 h-4 w-4" />
                           عرض التفاصيل
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -314,7 +316,7 @@ export default function Debts() {
                           className="text-red-600"
                           onClick={() => handleDelete(transaction.id)}
                         >
-                          <IconTrash className="ml-2 h-4 w-4" />
+                          <Trash2 className="ml-2 h-4 w-4" />
                           حذف
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -450,7 +452,7 @@ export default function Debts() {
 
           <DialogFooter>
              <Button variant="destructive" onClick={() => selectedTransaction && handleDelete(selectedTransaction.id)}>
-                <IconTrash className="ml-2 h-4 w-4" />
+                <Trash2 className="ml-2 h-4 w-4" />
                 حذف العملية
              </Button>
              <Button variant="outline" onClick={() => setShowViewDialog(false)}>
